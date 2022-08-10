@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Completed processes</title>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" href="css/main.css" th:href="@{/css/main.css}"/>
+    <link th:rel="stylesheet" th:href="@{/webjars/bootstrap/5.1.3/css/bootstrap.min.css} "/>
+</head>
+<body>
+<script th:src="@{/webjars/jquery/3.6.0/jquery.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/5.1.3/js/bootstrap.min.js}"></script>
+<script th:src="@{/webjars/echarts/5.3.3/dist/echarts.common.js}"></script>
+<script th:src="@{/webjars/echarts/5.3.3/dist/echarts.js}"></script>
+<script th:src="@{/js/chart.js}"></script>
+
+<div class="navbar-form navbar-right">
+    <a href="/user/index.html">
+        <button class="btn btn-secondary navbar-right">Back</button>
+    </a>
+</div>
+
+<div class="container my-2">
+    <h1>Draw model input/output chart</h1>
+    <h1 th:text="${businessKey}"></h1>
+    <br/>
+    <script th:inline="javascript">
+        let processId = "[(${processId})]";
+        let dataSize = "[(${dataSize})]";
+    </script>
+    <div>
+        <h1>Chart</h1>
+        <input type="hidden" th:value="${processId}" id="processId"/>
+        <div>
+            <h3>Select data to plot</h3>
+            <input name="input-x" list="select-x" onclick="autocompleteSdVar(processId, 'select-x')"/>
+            <datalist id="select-x">
+                <option>Loading...</option>
+            </datalist>
+            <input name="input-y" list="select-y" onclick="autocompleteSdVar(processId, 'select-y')">
+            <datalist id="select-y">
+                <option>Loading...</option>
+            </datalist>
+            <button type="button" class="btn btn-secondary" onclick="addPlot(processId, 'plot-list', 'input-x', 'input-y', 'data-point-idx', 'use-latest')">Add data plot</button>
+            <label for="saved-plots">Saved plot configs</label>
+            <input id="saved-plots" name="saved-plots" list="saved-plot-list" onclick="autocompleteSavedPlots('saved-plot-list')"
+                   oninput="savedPlotSelected('saved-plots', 'saved-plot-list', processId, 'plot-list', 'data-point-idx', 'use-latest')"
+                   style="width: 32em;"/>
+            <datalist id="saved-plot-list">
+                <option>Loading...</option>
+            </datalist>
+        </div>
+        <br/>
+        <div>
+            <ul id="plot-list">
+            </ul>
+            <button type="button" class="btn btn-secondary" onclick="rememberPlotConfig('plot-list')">Remember this plot config</button>
+        </div>
+    </div>
+    <br/>
+    <div>
+        <label for="use-latest">Use latest model instead of best</label>
+        <input id="use-latest" name="use-latest" type="checkbox" value="false" onclick="updateChartPointIdx(processId, 'plot-list', 'data-point-idx', 'use-latest', 'blur')"/>
+        <br/>
+        <a href="#" onclick="updateChartPointIdx(processId, 'plot-list', 'data-point-idx', 'use-latest', 'prev')">&lt</a>
+        <input id="data-point-idx" name="data-point-idx" type="text" value="1" onblur="updateChartPointIdx(processId, 'plot-list', 'data-point-idx', 'use-latest', 'blur')"/>
+        <a href="#" onclick="updateChartPointIdx(processId, 'plot-list', 'data-point-idx', 'use-latest', 'next')">&gt</a>
+        <a href="#" onclick="updateChartPointIdx(processId, 'plot-list', 'data-point-idx', 'use-latest', 'random')">Random</a>
+    </div>
+    <div class="loader hide-loader" id="loader"></div>
+    <div id="chart" style="width: 70vw; min-height: 80vh"></div>
+    <td th:title="${notes}">
+        <a th:href="@{/user/processes/{id}/notes.html(id=${processId})}" th:text="'Note ' + ${#strings.abbreviate(notes, 120) ?: ''}"></a>
+    </td>
+</div>
+
+</body>
+</html>

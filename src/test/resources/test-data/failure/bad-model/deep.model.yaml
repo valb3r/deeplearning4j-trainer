@@ -1,0 +1,34 @@
+layers:
+  - type: concat
+    name: input
+    in: 1
+    out: 2
+    inputVariables:
+      - a
+      - b
+    concatDim: 1
+  # Bad:
+  - type: dense
+    activation:
+      type: relu
+    initScheme:
+      type: xavier
+  ######### Embedding Layer
+  - type: diagonal-layer
+    name: embedding
+    in: 4
+    out: 4
+    activation:
+      type: identity
+    initScheme:
+      type: xavier
+  ######### Output layer
+  - type: dense
+    name: output
+    inputVariables: embedding
+    in: 4
+    out: 1
+    activation:
+      type: relu
+    initScheme:
+      type: xavier

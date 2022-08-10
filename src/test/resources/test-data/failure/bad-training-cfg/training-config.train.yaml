@@ -1,0 +1,17 @@
+seed: 123
+featureVars:
+  - a
+  - b
+labelVars:
+  - c
+numEpochs: 1
+batchSize: 2
+updater:
+  type: adam
+  params:
+    - 1e-2
+# Bad input
+loss:
+  entries:
+    - varName: output
+      labelName: c
