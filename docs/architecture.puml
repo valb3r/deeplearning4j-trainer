@@ -1,0 +1,34 @@
+@startuml
+skinparam ranksep 5
+skinparam nodesep 5
+
+actor User
+
+cloud {
+   control "Flowable BPMN" as flowable
+   database Postgres as postgres
+   database "S3 datasets\n(minio)" as datasets
+
+    rectangle "Worker 1" as worker1 {
+      rectangle "Flowable BPMN" as flowable1 {
+         control "Deeplearning4j \n batch" as dl1
+      }
+      control "Web API" as webapi
+    }
+
+    rectangle "Worker 2" as worker2 {
+      rectangle "Flowable BPMN" as flowable2 {
+        control "Deeplearning4j \n batch" as dl2
+      }
+      control "Web API" as webapi2
+    }
+}
+
+User --> webapi: "Upload dataset"
+webapi --> datasets: "Upload dataset"
+User --> flowable: "Trigger training process"
+flowable --> postgres: "Enqueue"
+dl2 <-- postgres: "Pick training process"
+dl2 <-- datasets: "Pick dataset"
+
+@enduml
