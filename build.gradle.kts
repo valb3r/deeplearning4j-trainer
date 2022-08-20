@@ -40,7 +40,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    runtimeOnly("com.h2database:h2")
+    runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
@@ -54,17 +54,11 @@ dependencies {
 
     // Deeplearning
     implementation("org.bytedeco:javacv-platform:1.5.5")
-    implementation("ch.qos.logback:logback-classic:1.1.7")
-    implementation("org.apache.httpcomponents:httpclient:4.3.5")
     implementation("org.jfree:jcommon:1.0.23")
     implementation("jfree:jfreechart:1.0.13")
-//    implementation("org.deeplearning4j:deeplearning4j-zoo:${dl4jMasterVersion}")
     implementation("org.deeplearning4j:deeplearning4j-ui:${dl4jMasterVersion}")
     implementation("org.deeplearning4j:deeplearning4j-core:${dl4jMasterVersion}")
     implementation("org.deeplearning4j:deeplearning4j-datasets:${dl4jMasterVersion}")
-//    implementation("org.datavec:datavec-local:${dl4jMasterVersion}")
-//    implementation("org.datavec:datavec-data-image:${dl4jMasterVersion}")
-//    implementation("org.datavec:datavec-api:${dl4jMasterVersion}")
 
     runtimeOnly("org.nd4j:nd4j-native-platform:${dl4jMasterVersion}")
     runtimeOnly("org.nd4j:nd4j-native:${dl4jMasterVersion}:macosx-x86_64")
@@ -86,6 +80,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
     testImplementation("io.kotest:kotest-assertions-core-jvm:5.3.2")
+    testImplementation("org.testcontainers:postgresql:1.17.3")
 }
 
 var commitSha: String by extra

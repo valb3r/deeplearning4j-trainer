@@ -26,6 +26,7 @@ import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
@@ -38,6 +39,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.time.Duration
 
+@ActiveProfiles("test")
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [Deeplearning4j_TrainerSpringApp::class])
@@ -130,7 +132,6 @@ class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext
         val tmpDir = Files.createTempDirectory("trainer-it-")
         properties.add("directories.input=${tmpDir.resolve("input").toAbsolutePath()}")
         properties.add("directories.output=${tmpDir.resolve("output").toAbsolutePath()}")
-        properties.add("spring.datasource.url=jdbc:h2:file:${tmpDir.resolve("deeplearning4j_trainer.db")}")
         TestPropertyValues.of(properties).applyTo(configurableApplicationContext.environment)
     }
 }

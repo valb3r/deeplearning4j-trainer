@@ -4,14 +4,16 @@ flowable:
   history-cleaning-after: 1d
 
 spring:
-  h2:
-    console:
-      enabled: false
   datasource:
-    url: jdbc:h2:file:./deeplearning4j_trainer.db
-    username: sa
-    password: a8u239joomlss12ea
+    url: jdbc:postgresql://localhost:5432/deeplearning4j-trainer?currentSchema=deeplearning4j_trainer
+    username: postgres
+    password: docker
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      schema: deeplearning4j_trainer
   jpa:
+    database-platform: com.valb3r.deeplearning4j_trainer.config.PostgreSQL10DialectWithBlob
     hibernate:
       ddl-auto: validate
   servlet:

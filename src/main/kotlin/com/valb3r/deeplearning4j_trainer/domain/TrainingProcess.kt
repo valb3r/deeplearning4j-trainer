@@ -1,8 +1,10 @@
 package com.valb3r.deeplearning4j_trainer.domain
 
 import com.valb3r.deeplearning4j_trainer.flowable.dto.TrainingContext
+import org.hibernate.annotations.Type
 import org.nd4j.autodiff.samediff.SameDiff
 import java.io.File
+import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Lob
 
@@ -17,14 +19,16 @@ class TrainingProcess(
 
     var currentIter: Long? = null
     var bestLoss: Double? = null
-    @Lob var trainingContext: String
+
+    @Lob
+    var trainingContext: ByteArray
 
     init {
         this.processId = processId
         this.trainedModelPath = trainedModelPath
         this.businessKey = businessKey
         this.processDefinitionName = processDefinitionName
-        this.trainingContext = domainCtxMapper.writeValueAsString(trainingContext)
+        this.trainingContext = domainCtxMapper.writeValueAsBytes(trainingContext)
     }
 
     fun updatePerformance(sd: SameDiff, loss: Double, epoch: Long) {
@@ -41,14 +45,10 @@ class TrainingProcess(
     }
 
     fun setCtx(ctx: TrainingContext) {
-        trainingContext = domainCtxMapper.writeValueAsString(ctx)
+        trainingContext = domainCtxMapper.writeValueAsBytes(ctx)
     }
 
     override fun getCtx(): TrainingContext? {
         return domainCtxMapper.readValue(trainingContext, TrainingContext::class.java)
-    }
-
-    fun getRevertedStacktrace(): String? {
-        return errorStacktrace?.lines()?.reversed()?.joinToString("\n")
     }
 }

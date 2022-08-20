@@ -54,7 +54,7 @@ class ModelValidator(
 
         val process = validationRepo.findByProcessId(execution.processInstanceId)!!
         process.setCtx(ctx)
-        process.validationResult = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(metrics)
+        process.validationResult = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(metrics)
         validationRepo.save(process)
     }
 

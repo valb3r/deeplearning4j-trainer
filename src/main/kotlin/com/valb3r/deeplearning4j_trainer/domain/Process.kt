@@ -1,7 +1,9 @@
 package com.valb3r.deeplearning4j_trainer.domain
 
 import com.valb3r.deeplearning4j_trainer.flowable.dto.Context
+import org.hibernate.annotations.Type
 import org.hibernate.annotations.UpdateTimestamp
+import java.nio.charset.StandardCharsets
 import java.time.Instant
 import javax.persistence.*
 
@@ -10,7 +12,8 @@ import javax.persistence.*
 abstract class Process<out T : Context>  {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = SEQUENCE)
+    @SequenceGenerator(name = SEQUENCE, sequenceName = SEQUENCE, allocationSize = 50)
     open var id: Long? = null
 
     open var trainedModelPath: String = "N/A"
@@ -21,7 +24,8 @@ abstract class Process<out T : Context>  {
     open var processId: String = "N/A"
 
     @Lob
-    open var errorStacktrace: String? = null
+    open var errorStacktrace: ByteArray? = null
+
     open var errorMessage: String? = null
     open var notes: String? = null
     open var completed = false
@@ -44,5 +48,9 @@ abstract class Process<out T : Context>  {
         }
 
         return bestPerformingTrainedModelPath!!
+    }
+
+    fun getRevertedStacktrace(): String? {
+        return errorStacktrace?.let { String(it, StandardCharsets.UTF_8) }?.lines()?.reversed()?.joinToString("\n")
     }
 }

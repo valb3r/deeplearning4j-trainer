@@ -6,6 +6,7 @@ import org.flowable.engine.delegate.BpmnError
 import org.flowable.engine.delegate.DelegateExecution
 import org.flowable.engine.delegate.JavaDelegate
 import org.springframework.beans.factory.annotation.Autowired
+import java.nio.charset.StandardCharsets.UTF_8
 
 private val logger = KotlinLogging.logger {}
 abstract class WrappedJavaDelegate: JavaDelegate {
@@ -31,7 +32,7 @@ abstract class WrappedJavaDelegate: JavaDelegate {
             val procInstance = processRepository!!.findByProcessId(execution.processInstanceId)!!
             procInstance.errorMessage = ex.message ?: "${ex.javaClass}: null"
             procInstance.completed = true
-            procInstance.errorStacktrace = ex.stackTraceToString()
+            procInstance.errorStacktrace = ex.stackTraceToString().toByteArray(UTF_8)
             processRepository!!.save(procInstance)
         } catch (ex: Throwable) {
             // NOP
