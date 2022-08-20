@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Evaluate value using models' SameDiff</title>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" href="css/main.css" th:href="@{/css/main.css}"/>
+    <link th:rel="stylesheet" th:href="@{/webjars/bootstrap/5.1.3/css/bootstrap.min.css} "/>
+</head>
+<body>
+<script th:src="@{/webjars/jquery/3.6.0/jquery.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/5.1.3/js/bootstrap.min.js}"></script>
+<script th:src="@{/webjars/echarts/5.3.3/dist/echarts.common.js}"></script>
+<script th:src="@{/webjars/echarts/5.3.3/dist/echarts.js}"></script>
+<script th:src="@{/js/expression.js}"></script>
+
+<div class="navbar-form navbar-right">
+    <a href="/user/index.html">
+        <button class="btn btn-secondary navbar-right">Back</button>
+    </a>
+</div>
+
+<div class="container my-2">
+    <h1>Evaluate value using models' SameDiff</h1>
+    <h1 th:text="${businessKey}"></h1>
+    <br/>
+    <script th:inline="javascript">
+        let processId = "[(${processId})]";
+        let dataSize = "[(${dataSize})]";
+    </script>
+    <div>
+        <h1>Evaluate</h1>
+        <input type="hidden" th:value="${processId}" id="processId"/>
+        <div>
+            <h3>Evaluate expression(s)</h3>
+            <input name="input-expr" id="input-expr"/>
+            <button type="button" class="btn btn-secondary" onclick="addExpression(processId, 'expr-list', 'input-expr', 'data-point-idx', 'use-latest')">Add expression</button>
+            <label for="saved-expr">Saved plot configs</label>
+            <input id="saved-expr" name="saved-plots" list="saved-expr-list" onclick="autocompleteSavedExpressions('saved-expr-list')"
+                   oninput="savedExpressionsSelected('saved-expr', 'saved-expr-list', processId, 'expr-list', 'data-point-idx', 'use-latest')"
+                   style="width: 32em;"/>
+            <datalist id="saved-expr-list">
+                <option>Loading...</option>
+            </datalist>
+        </div>
+        <br/>
+        <div>
+            <ul id="expr-list">
+            </ul>
+            <button type="button" class="btn btn-secondary" onclick="rememberExpressionConfig('expr-list')">Remember this expression config</button>
+        </div>
+    </div>
+    <br/>
+    <div>
+        <label for="use-latest">Use latest model instead of best</label>
+        <input id="use-latest" name="use-latest" type="checkbox" value="false" onclick="updateExpressionPointIdx(processId, 'expr-list', 'data-point-idx', 'use-latest', 'blur')"/>
+        <br/>
+        <a href="#" onclick="updateExpressionPointIdx(processId, 'expr-list', 'data-point-idx', 'use-latest', 'prev')">&lt</a>
+        <input id="data-point-idx" name="data-point-idx" type="text" value="1" onblur="updateExpressionPointIdx(processId, 'expr-list', 'data-point-idx', 'use-latest', 'blur')"/>
+        <a href="#" onclick="updateExpressionPointIdx(processId, 'expr-list', 'data-point-idx', 'use-latest', 'next')">&gt</a>
+        <a href="#" onclick="updateExpressionPointIdx(processId, 'expr-list', 'data-point-idx', 'use-latest', 'random')">Random</a>
+    </div>
+    <div class="loader hide-loader" id="loader"></div>
+    <textarea id="expr" rows="30" cols="70" name="expr" readonly></textarea>
+    <td th:title="${notes}">
+        <a th:href="@{/user/processes/{id}/notes.html(id=${processId})}" th:text="'Note ' + ${#strings.abbreviate(notes, 120) ?: ''}"></a>
+    </td>
+</div>
+
+</body>
+</html>

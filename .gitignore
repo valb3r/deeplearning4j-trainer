@@ -22,13 +22,14 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
-.idea
+build
 data
 /res*
 input
 output
 inputs
 debug
+validation-inputs
 training-inputs
 training-inputs-test
 *.db

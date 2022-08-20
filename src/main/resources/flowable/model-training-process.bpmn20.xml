@@ -5,13 +5,13 @@
     <subProcess id="sid-d80198a3-1cb3-429d-93bd-e0af9cac6fc1" flowable:exclusive="true" flowable:async="true">
       <startEvent id="sid-6f5e80b1-f620-4963-8108-82a295476caa"/>
       <endEvent id="sid-f1ca062d-f7cc-4411-ad41-61c736abbe5b"/>
-      <serviceTask id="sid-30d67d0b-e75c-40d4-a26a-c0894e5c9347" flowable:exclusive="true" name="Validate process inputs" flowable:delegateExpression="${dataInputValidatorAndLoader}" flowable:async="true"/>
+      <serviceTask id="sid-30d67d0b-e75c-40d4-a26a-c0894e5c9347" flowable:exclusive="true" name="Validate process inputs" flowable:delegateExpression="${trainingDataInputValidatorAndLoader}" flowable:async="true"/>
       <sequenceFlow id="sid-262c5d6e-6e4b-4a90-82d8-9fd1e0286deb" sourceRef="sid-6f5e80b1-f620-4963-8108-82a295476caa" targetRef="sid-30d67d0b-e75c-40d4-a26a-c0894e5c9347"/>
       <exclusiveGateway id="sid-e813b233-34f4-41dc-9700-e0ae951ef75e" default="sid-53706c25-bc8c-4fcf-99f0-154d590928d7"/>
       <sequenceFlow id="sid-772219ed-02af-4d0f-b3e3-25bba9f75006" sourceRef="sid-30d67d0b-e75c-40d4-a26a-c0894e5c9347" targetRef="sid-e813b233-34f4-41dc-9700-e0ae951ef75e"/>
       <serviceTask id="sid-de91c407-9434-4c63-865c-ff9049b4100d" flowable:exclusive="true" name="Generate new model according to specification" flowable:delegateExpression="${newModelGenerator}" flowable:async="true"/>
       <sequenceFlow id="sid-58032dec-1974-45b2-b8a9-a5b1511cf64e" sourceRef="sid-e813b233-34f4-41dc-9700-e0ae951ef75e" targetRef="sid-de91c407-9434-4c63-865c-ff9049b4100d" name="New model required">
-        <conditionExpression xsi:type="tFormalExpression">#{conditionEvaluator.newModelNeeded(CONTEXT)}</conditionExpression>
+        <conditionExpression xsi:type="tFormalExpression">#{trainingConditionEvaluator.newModelNeeded(CONTEXT)}</conditionExpression>
       </sequenceFlow>
       <serviceTask id="sid-91028715-deb9-4c9d-9315-ba38327758e3" flowable:exclusive="true" name="Load model from input" flowable:delegateExpression="${modelLoader}" flowable:async="true"/>
       <sequenceFlow id="sid-53706c25-bc8c-4fcf-99f0-154d590928d7" sourceRef="sid-e813b233-34f4-41dc-9700-e0ae951ef75e" targetRef="sid-91028715-deb9-4c9d-9315-ba38327758e3">
@@ -26,7 +26,7 @@
       <sequenceFlow id="sid-5f2350ee-b8e2-4b33-a2f2-8fcef44201d0" sourceRef="sid-a44894da-1ec3-43dd-bcc3-1f9b208d23bd" targetRef="sid-88d4c93d-6546-4b93-a808-a8c60c854eec"/>
       <exclusiveGateway id="sid-ef64bd7f-32e5-487d-8655-06e18c95a52b" default="sid-7dac4f67-d9c7-4d42-a3c3-f8bc8fc6affa"/>
       <sequenceFlow id="sid-9777d895-dd93-4213-8fc2-1ee7584490f1" sourceRef="sid-ef64bd7f-32e5-487d-8655-06e18c95a52b" targetRef="sid-f1ca062d-f7cc-4411-ad41-61c736abbe5b" name="No more data available">
-        <conditionExpression xsi:type="tFormalExpression">#{!conditionEvaluator.hasMoreDataToTrain(CONTEXT)}</conditionExpression>
+        <conditionExpression xsi:type="tFormalExpression">#{!trainingConditionEvaluator.hasMoreDataToTrain(CONTEXT)}</conditionExpression>
       </sequenceFlow>
       <sequenceFlow id="sid-7dac4f67-d9c7-4d42-a3c3-f8bc8fc6affa" sourceRef="sid-ef64bd7f-32e5-487d-8655-06e18c95a52b" targetRef="sid-077421a7-7e3f-44fe-b23a-532ddef4d84e">
         <conditionExpression xsi:type="tFormalExpression"/>

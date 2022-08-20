@@ -9,9 +9,10 @@ plugins {
     kotlin("plugin.spring") version "1.4.32"
     kotlin("jvm") version "1.7.0"
     id("com.bmuschko.docker-remote-api") version "6.7.0"
+    antlr
 }
 
-group = "com.valb3r.deeeplearning4j_trainer"
+group = "com.valb3r.deeplearning4j_trainer"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -48,6 +49,8 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-ui:1.6.9")
     implementation("org.springdoc:springdoc-openapi-data-rest:1.6.9")
 
+    // ANTLR
+    antlr("org.antlr:antlr4:4.7.1") // use ANTLR version 4
 
     // Deeplearning
     implementation("org.bytedeco:javacv-platform:1.5.5")
@@ -102,7 +105,21 @@ tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
 
+// ANTLR config, need visitor:
+tasks.generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments = arguments + listOf(
+        "-visitor",
+        "-long-messages",
+        "-lib",
+        "src/main/antlr/com/valb3r/deeplearning4j_trainer",
+        "-package",
+        "com.valb3r.deeplearning4j_trainer"
+    )
+}
+
 tasks.withType<KotlinCompile> {
+    dependsOn("generateGrammarSource")
     kotlinOptions.jvmTarget = "1.8"
 }
 
@@ -136,7 +153,7 @@ tasks.register("createDockerfile", com.bmuschko.gradle.docker.tasks.image.Docker
     dependsOn("syncJar")
     val bootJar by tasks.getting(BootJar::class)
 
-    val cmd = "/app/dl4j-trainer-${commitSha}.jar"
+    val cmd = "/app/deeplearning4j_trainer-${commitSha}.jar"
     from("openjdk:11.0.8-jre-slim")
     copyFile(bootJar.archiveFileName.get(), cmd)
     entryPoint("java")
@@ -146,7 +163,7 @@ tasks.register("createDockerfile", com.bmuschko.gradle.docker.tasks.image.Docker
 
 tasks.register("buildImage", com.bmuschko.gradle.docker.tasks.image.DockerBuildImage::class) {
     dependsOn("createDockerfile", "syncJar")
-    images.add("trainer/dl4j-trainer:${commitSha}")
+    images.add("deeplearning4j_trainer/deeplearning4j_trainer-trainer:${commitSha}")
 }
 
 tasks.register("printCommitSha") {

@@ -55,7 +55,7 @@ function savedPlotSelected(inputId, listId, processId, chartsListId, dataPointId
             chartList.replaceChildren();
             val.split("; ").forEach((chartDef) => {
                 const def = chartDef.split(",")
-                addPlotToList(def[0], def[1], processId, chartsListId, useLatest)
+                addPlotToList(def[0], def[1], processId, chartsListId, dataPointIdxElemId, useLatest)
             });
             updateChart(processId, chartsListId, dataPointIdxElemId, useLatest)
             break;
@@ -63,28 +63,27 @@ function savedPlotSelected(inputId, listId, processId, chartsListId, dataPointId
     }
 }
 
-function addPlotToList(plotXval, plotYval, processId, chartsListId, useLatest) {
+function addPlotToList(plotXval, plotYval, processId, chartsListId, dataPointIdx, useLatest) {
     let option = document.createElement('li');
     let list = document.getElementById(chartsListId);
     option.plotId = `${plotXval} --- ${plotYval}`;
     option.id = `option-${idCounter++}`;
     let span = document.createElement('span');
-    span.innerHTML = `${option.plotId} <a href="#" onclick="removePlot('${processId}', '${chartsListId}', '${option.id}', '${useLatest}')">Delete</a>`
+    span.innerHTML = `${option.plotId} <a href="#" onclick="removePlot('${processId}', '${chartsListId}', '${option.id}', '${dataPointIdx}', '${useLatest}')">Delete</a>`
     option.appendChild(span);
     list.appendChild(option);
 }
 
 function addPlot(processId, chartsListId, plotXname, plotYname, dataPointIdxElemId, useLatest) {
-    const list = document.getElementById(chartsListId);
     let plotXval = document.getElementsByName(plotXname)[0].value
     let plotYval = document.getElementsByName(plotYname)[0].value
-    addPlotToList(plotXval, plotYval, processId, chartsListId, useLatest, list);
+    addPlotToList(plotXval, plotYval, processId, chartsListId, dataPointIdxElemId, useLatest);
     updateChart(processId, chartsListId, dataPointIdxElemId, useLatest)
 }
 
-function removePlot(processId, chartsListId, optionId, useLatest) {
+function removePlot(processId, chartsListId, optionId, dataPointIdx, useLatest) {
     document.getElementById(chartsListId).removeChild(document.getElementById(optionId))
-    updateChart(processId, chartsListId, useLatest)
+    updateChart(processId, chartsListId, dataPointIdx, useLatest)
 }
 
 function updateChartPointIdx(processId, chartsListId, dataPointIdxElemId, useLatest, updateType) {
@@ -257,6 +256,10 @@ function enhanceResponseWithSyntheticVars(response, syntheticVars) {
         let splitVal = synthVar.split("\.")
         let originName = splitVal[0].substring(1)
         let operation = splitVal[1]
+        if (!response[originName]) {
+            continue
+        }
+
         switch (operation) {
             case "array-index":
                 response[synthVar] = Array(response[originName].length).fill().map((element, index) => index)

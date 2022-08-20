@@ -8,9 +8,9 @@ spring:
     console:
       enabled: false
   datasource:
-    url: jdbc:h2:file:./dl4j-trainer.db
+    url: jdbc:h2:file:./deeplearning4j_trainer.db
     username: sa
-    password: changeme-password
+    password: a8u239joomlss12ea
   jpa:
     hibernate:
       ddl-auto: validate

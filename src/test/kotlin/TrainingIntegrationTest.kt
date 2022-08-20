@@ -1,6 +1,6 @@
 
-import com.valb3r.deeeplearning4j_trainer.spring.Deeplearing4jTrainerSpringApp
-import com.valb3r.deeeplearning4j_trainer.spring.repository.TrainingProcessRepository
+import com.valb3r.deeplearning4j_trainer.Deeplearning4j_TrainerSpringApp
+import com.valb3r.deeplearning4j_trainer.repository.TrainingProcessRepository
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.comparables.shouldBeGreaterThan
@@ -40,7 +40,7 @@ import java.time.Duration
 
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @AutoConfigureMockMvc
-@SpringBootTest(classes = [Deeplearing4jTrainerSpringApp::class])
+@SpringBootTest(classes = [Deeplearning4j_TrainerSpringApp::class])
 @ContextConfiguration(initializers = [Initializer::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class TrainingIntegrationTest {
@@ -85,14 +85,14 @@ class TrainingIntegrationTest {
         val proc = trainingProcessRepo.findAll().shouldHaveSize(1).first()
         proc.completed.shouldBeTrue()
         proc.errorMessage.shouldBeNull()
-        proc.getCtx().currentEpoch!!.shouldBe(1)
+        proc.getCtx()!!.currentEpoch.shouldBe(1)
         proc.bestLoss!!.shouldBeGreaterThan(-1.0)
     }
 
     @CsvSource(
         "test-data/failure/bad-input/**,class java.lang.NullPointerException: null",
         "test-data/failure/bad-model/**,Missing required creator property 'in'",
-        "test-data/failure/bad-training-cfg/**,'Instantiation of [simple type, class com.valb3r.deeeplearning4j_trainer.spring.flowable.dto.Loss]'",
+        "test-data/failure/bad-training-cfg/**,'Instantiation of [simple type, class com.valb3r.deeplearning4j_trainer.flowable.dto.Loss]'",
         "test-data/failure/no-data-uploaded/**,No data files available",
         "test-data/failure/no-model-uploaded/**,No model or model spec available",
         "test-data/failure/no-training-cfg-uploaded/**,No train spec files available",
@@ -130,7 +130,7 @@ class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext
         val tmpDir = Files.createTempDirectory("trainer-it-")
         properties.add("directories.input=${tmpDir.resolve("input").toAbsolutePath()}")
         properties.add("directories.output=${tmpDir.resolve("output").toAbsolutePath()}")
-        properties.add("spring.datasource.url=jdbc:h2:file:${tmpDir.resolve("dl4j-trainer.db")}")
+        properties.add("spring.datasource.url=jdbc:h2:file:${tmpDir.resolve("deeplearning4j_trainer.db")}")
         TestPropertyValues.of(properties).applyTo(configurableApplicationContext.environment)
     }
 }
