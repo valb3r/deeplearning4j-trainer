@@ -40,3 +40,6 @@ best-models/raw
 # Cluster
 **/kube.tf
 _cluster
+.terraform
+*.lock.hcl
+*.tfstate
