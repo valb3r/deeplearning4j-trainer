@@ -39,3 +39,4 @@ best-models/raw
 
 # Cluster
 **/kube.tf
+_cluster
