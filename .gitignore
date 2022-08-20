@@ -35,3 +35,4 @@ training-inputs-test
 *.db
 best-models/raw
 /datasets/**
+**/gen/
