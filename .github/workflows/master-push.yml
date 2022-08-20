@@ -36,7 +36,7 @@ jobs:
         run: echo "::set-output name=sha_short::$(./gradlew printCommitSha | grep COMMIT | cut -d":" -f2)"
 
       - name: Build project backend and run tests
-        run: ./gradlew clean test
+        run: ./gradlew clean test --stacktrace
 
       - name: Build project docker images (UI and Backend)
         run: ./gradlew buildImage

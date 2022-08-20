@@ -1,4 +1,4 @@
 spring:
   datasource:
-    url: jdbc:tc:postgresql:14:////open_banking?TC_DAEMON=true&TC_INITSCRIPT=init.sql
+    url: jdbc:tc:postgresql:14:////open_banking?TC_INITSCRIPT=init.sql
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
