@@ -7,7 +7,7 @@ variable "minio_operator_version" {
 variable "minio_operator_namespace" {
   type        = string
   # TODO: Change to some operator-specific namespace
-  default     = "default"
+  default     = "minio-operator"
   description = "Namespace for Minio operator"
 }
 

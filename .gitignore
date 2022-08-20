@@ -43,3 +43,4 @@ _cluster
 .terraform
 *.lock.hcl
 *.tfstate
+*.tfstate.backup
