@@ -36,3 +36,6 @@ training-inputs-test
 best-models/raw
 /datasets/**
 **/gen/
+
+# Cluster
+**/kube.tf
