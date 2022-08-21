@@ -43,5 +43,6 @@ best-models/raw
 _cluster
 .terraform
 *.lock.hcl
+*.tfvars
 *.tfstate
 *.tfstate.backup
