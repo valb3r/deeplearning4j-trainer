@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.iterable.S3Objects
 import com.google.common.cache.CacheBuilder
 import com.valb3r.deeplearning4j_trainer.config.S3Config
+import org.aspectj.weaver.tools.cache.SimpleCacheFactory.path
 import org.springframework.stereotype.Service
 import java.io.InputStream
 import java.io.OutputStream
@@ -73,16 +74,15 @@ class S3SystemStorage(private val conf: S3Config): StorageSystem {
     }
 
     private fun String.bucket(): String {
-        return URI(this).path.split("/")[1]
+        return this.substring(S3_PROTO.length).split("/")[1]
     }
 
     private fun String.objKey(): String {
-        return URI(this).path.substring(1).split("/", limit = 2)[1]
+        return this.substring(S3_PROTO.length).split("/", limit = 3)[2]
     }
 
     private fun String.hostAndPort(): String {
-        val uri = URI(this)
-        return "${uri.host}:${uri.port}"
+        return this.substring(S3_PROTO.length).split("/", limit = 3)[0]
     }
 
     private fun String.asS3(): AmazonS3 {

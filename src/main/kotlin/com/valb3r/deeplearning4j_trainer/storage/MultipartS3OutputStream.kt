@@ -71,6 +71,7 @@ class MultipartS3OutputStream(
         val size = currentOutputStream!!.size()
 
         currentOutputStream = newOutputStream()
+        val counter = partCounter
         completionService.submit {
             amazonS3.uploadPart(
                 UploadPartRequest()
@@ -78,7 +79,7 @@ class MultipartS3OutputStream(
                     .withKey(objectName)
                     .withUploadId(multiPartUploadResult!!.uploadId)
                     .withInputStream(ByteArrayInputStream(content))
-                    .withPartNumber(partCounter)
+                    .withPartNumber(counter)
                     .withLastPart(false)
                     .withPartSize(size.toLong())
             )
@@ -137,6 +138,7 @@ class MultipartS3OutputStream(
         val size = currentOutputStream!!.size()
 
         currentOutputStream = null
+        val counter = partCounter
         completionService.submit {
             amazonS3.uploadPart(
                 UploadPartRequest()
@@ -144,7 +146,7 @@ class MultipartS3OutputStream(
                     .withKey(objectName)
                     .withUploadId(multiPartUploadResult!!.uploadId)
                     .withInputStream(ByteArrayInputStream(content))
-                    .withPartNumber(partCounter)
+                    .withPartNumber(counter)
                     .withLastPart(true)
                     .withPartSize(size.toLong())
             )

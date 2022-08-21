@@ -3,7 +3,6 @@ package com.valb3r.deeplearning4j_trainer.storage
 import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
 import java.io.BufferedInputStream
-import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
