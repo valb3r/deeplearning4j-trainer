@@ -44,8 +44,8 @@ jobs:
       - name: Push To Github container registry
         uses: redhat-actions/push-to-registry@v2
         with:
-          image: deeplearning4j_trainer-trainer:latest
+          image: valb3r/deeplearning4j_trainer-trainer
           tags: latest
-          registry: https://ghcr.io/valb3r
+          registry: https://ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
