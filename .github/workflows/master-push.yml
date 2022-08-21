@@ -41,9 +41,11 @@ jobs:
       - name: Build project docker images (UI and Backend)
         run: ./gradlew buildImage
 
-      - name: Push docker images
-        uses: docker/build-push-action@v3
+      - name: Push To Github container registry
+        uses: redhat-actions/push-to-registry@v2
         with:
-          registry: ghcr.io
-          push: true
-          tags: deeplearning4j_trainer/deeplearning4j_trainer-trainer:latest
+          image: deeplearning4j_trainer/deeplearning4j_trainer-trainer:latest
+          tags: latest
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
