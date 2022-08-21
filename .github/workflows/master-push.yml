@@ -46,6 +46,6 @@ jobs:
         with:
           image: deeplearning4j_trainer/deeplearning4j_trainer-trainer:latest
           tags: latest
-          registry: ${{ env.REGISTRY }}
+          registry: https://ghcr.io/valb3r
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
