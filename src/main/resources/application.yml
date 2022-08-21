@@ -30,8 +30,8 @@ server:
   forward-headers-strategy: framework
 
 directories:
-  input: file:///tmp/training-bucket/input/
-  output: file:///tmp/training-bucket/output/
+  input: s3://localhost:9000/training-bucket/input/
+  output: s3://localhost:9000/training-bucket/output/
 
 s3:
   access-key-id: minio
