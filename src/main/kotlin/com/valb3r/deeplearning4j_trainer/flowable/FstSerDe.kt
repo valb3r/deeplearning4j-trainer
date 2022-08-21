@@ -5,9 +5,15 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.fasterxml.jackson.dataformat.csv.CsvParser
 import com.valb3r.deeplearning4j_trainer.storage.Storage
 import java.io.Closeable
-import java.io.File
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
+
+private fun bigEndianBuff(sz: Int): ByteBuffer {
+    val buff = ByteBuffer.allocate(sz)
+    buff.order(ByteOrder.BIG_ENDIAN)
+    return buff
+}
 
 class FstSerDe {
 
@@ -26,18 +32,18 @@ class FstSerDe {
             var headerWritten = false
             iter.forEachRemaining { row ->
                 if (!headerWritten) {
-                    fof.write(ByteBuffer.allocate(Int.SIZE_BYTES).putInt(row.size).array())
+                    fof.write(bigEndianBuff(Int.SIZE_BYTES).putInt(row.size).array())
                     row.forEach { headerName ->
                         val bytes = headerName.encodeToByteArray()
-                        fof.write(ByteBuffer.allocate(Int.SIZE_BYTES).putInt(bytes.size).array())
+                        fof.write(bigEndianBuff(Int.SIZE_BYTES).putInt(bytes.size).array())
                         fof.write(bytes)
                     }
                     headerWritten = true
                 } else {
                     row.forEach { data ->
                         val floatVals = data.split(";").map { it.toFloat() }
-                        fof.write(ByteBuffer.allocate(Int.SIZE_BYTES).putInt(floatVals.size).array())
-                        val byteFloatBuf = ByteBuffer.allocate(Float.SIZE_BYTES * floatVals.size)
+                        fof.write(bigEndianBuff(Int.SIZE_BYTES).putInt(floatVals.size).array())
+                        val byteFloatBuf = bigEndianBuff(Float.SIZE_BYTES * floatVals.size)
                         val floatBuf = byteFloatBuf.asFloatBuffer()
                         floatVals.forEach { floatBuf.put(it) }
                         fof.write(byteFloatBuf.array())
@@ -60,13 +66,13 @@ class FstSerDe {
 
         init {
             val headers = mutableListOf<String>()
-            val numHeadersBytes = ByteBuffer.allocate(Int.SIZE_BYTES)
-            fIf.read(numHeadersBytes.array())
+            val numHeadersBytes = bigEndianBuff(Int.SIZE_BYTES)
+            readExact(numHeadersBytes.array())
             (0 until numHeadersBytes.int).forEach { _ ->
-                val headerNameLenBytes = ByteBuffer.allocate(Int.SIZE_BYTES)
-                fIf.read(headerNameLenBytes.array())
-                val headerNameBytes = ByteBuffer.allocate(headerNameLenBytes.int)
-                fIf.read(headerNameBytes.array())
+                val headerNameLenBytes = bigEndianBuff(Int.SIZE_BYTES)
+                readExact(headerNameLenBytes.array())
+                val headerNameBytes = bigEndianBuff(headerNameLenBytes.int)
+                readExact(headerNameBytes.array())
                 val headerName = headerNameBytes.array().decodeToString()
                 headers.add(headerName)
             }
@@ -93,8 +99,8 @@ class FstSerDe {
             }
             val result = mutableMapOf<String, FloatArray>()
             headerNames.forEach { name ->
-                val vectorBytes = ByteBuffer.allocate(vectorSize * Float.SIZE_BYTES)
-                fIf.read(vectorBytes.array())
+                val vectorBytes = bigEndianBuff(vectorSize * Float.SIZE_BYTES)
+                readExact(vectorBytes.array())
                 val buf = vectorBytes.asFloatBuffer()
                 result[name] = (0 until vectorSize).map { buf.get() }.toFloatArray()
                 vectorSize = readVectorSize()
@@ -118,11 +124,25 @@ class FstSerDe {
         }
 
         private fun readVectorSize(): Int {
-            val vectorSizeBytes = ByteBuffer.allocate(Int.SIZE_BYTES)
-            if (fIf.read(vectorSizeBytes.array()) < 0) {
+            val vectorSizeBytes = bigEndianBuff(Int.SIZE_BYTES)
+            if (readExact(vectorSizeBytes.array()) < 0) {
                 return -1
             }
             return vectorSizeBytes.int
+        }
+        
+        private fun readExact(buff: ByteArray): Int {
+            var capacity = buff.size
+            var off = 0
+            while (capacity > 0) {
+                val bytesRead = fIf.read(buff, off, capacity)
+                if (bytesRead < 0) {
+                    return -1
+                }
+                capacity -= bytesRead
+                off += bytesRead
+            }
+            return buff.size
         }
     }
 }

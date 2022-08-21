@@ -46,6 +46,10 @@ fun String.resolve(other: String): String {
         name = name.split("/").last()
     }
 
+    if (this.endsWith("/")) {
+        return "$this$name"
+    }
+
     return "$this/$name"
 }
 

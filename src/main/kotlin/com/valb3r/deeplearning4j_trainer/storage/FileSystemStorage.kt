@@ -5,9 +5,7 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.stream.Collectors
-import kotlin.streams.toList
 
 private const val FILE_PROTO = "file://"
 

@@ -45,7 +45,7 @@ import java.time.Duration
 @SpringBootTest(classes = [Deeplearning4j_TrainerSpringApp::class])
 @ContextConfiguration(initializers = [Initializer::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class TrainingIntegrationTest {
+class FileSystemTrainingIntegrationTest {
 
     @Autowired
     private lateinit var mockMvc: MockMvc

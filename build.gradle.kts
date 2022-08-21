@@ -65,8 +65,8 @@ dependencies {
     runtimeOnly("org.nd4j:nd4j-native:${dl4jMasterVersion}:macosx-x86_64")
 
     // Minio S3 connectivity
-    implementation("com.amazonaws:aws-java-sdk-s3:1.12.285")
-    implementation("com.amazonaws:aws-java-sdk-core:1.12.285")
+    implementation("com.amazonaws:aws-java-sdk-s3:1.11.538")
+    implementation("com.amazonaws:aws-java-sdk-core:1.11.538")
 
     // Common
     compileOnly("org.projectlombok:lombok:1.18.24")
