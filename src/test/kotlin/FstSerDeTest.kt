@@ -1,6 +1,7 @@
 
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.valb3r.deeplearning4j_trainer.flowable.FstSerDe
+import com.valb3r.deeplearning4j_trainer.storage.FileSystemStorage
 import io.kotest.matchers.collections.shouldHaveSingleElement
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
@@ -12,13 +13,15 @@ import java.io.File
 
 internal class FstSerDeTest {
 
+    private val storage = FileSystemStorage()
+
     @Test
     fun testSerializationDeserialization(@TempDir inpDirPath: File) {
         val inpFile = inpDirPath.resolve("data.csv")
         Resources.asByteSource(Resources.getResource("data.csv")).copyTo(Files.asByteSink(inpFile))
         val buff = FstSerDe()
-        val inpBinFile = buff.csvToBin(inpFile.absolutePath, ".bin", CsvMapper())
-        val iter = FstSerDe.FstIterator(inpBinFile.fstFileName)
+        val inpBinFile = buff.csvToBin("file://${inpFile.absolutePath}", ".bin", CsvMapper(), storage)
+        val iter = FstSerDe.FstIterator(inpBinFile.fstFileName, storage)
         val rows = mutableListOf<Map<String, FloatArray>>()
         iter.forEachRemaining { rows += it }
         rows.shouldHaveSize(9)

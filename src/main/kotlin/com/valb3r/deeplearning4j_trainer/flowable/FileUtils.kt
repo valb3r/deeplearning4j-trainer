@@ -1,15 +1,18 @@
 package com.valb3r.deeplearning4j_trainer.flowable
 
+import com.fasterxml.jackson.dataformat.csv.CsvMapper
+import com.valb3r.deeplearning4j_trainer.storage.Storage
+import com.valb3r.deeplearning4j_trainer.storage.resolve
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
-fun extractZipFiles(inputFolder: File) {
-    val zipFiles = inputFolder.listFiles()!!.map { it.absolutePath }.filter { it.endsWith(".zip") }
+fun extractZipFilesAndDeleteArch(inputFolder: String, storage: Storage) {
+    val zipFiles = storage.list(inputFolder).filter { it.endsWith(".zip") }
     for (zipFile in zipFiles) {
-        ZipInputStream(FileInputStream(zipFile)).use { zis ->
+        ZipInputStream(storage.read(zipFile)).use { zis ->
             while (true) {
                 val zipEntry: ZipEntry = zis.nextEntry ?: break
                 if (zipEntry.isDirectory) {
@@ -17,7 +20,7 @@ fun extractZipFiles(inputFolder: File) {
                 }
 
                 val buffer = ByteArray(1024)
-                FileOutputStream(inputFolder.resolve(zipEntry.name)).use { fos ->
+                storage.write(inputFolder.resolve(zipEntry.name)).use { fos ->
                     while (true) {
                         val len = zis.read(buffer)
                         if (len <= 0) break
@@ -28,6 +31,18 @@ fun extractZipFiles(inputFolder: File) {
             }
         }
 
-        File(zipFile).delete()
+        storage.remove(zipFile)
     }
+}
+
+fun csvToBinAndRemoveSrc(
+    file: String,
+    mapper: CsvMapper,
+    result: MutableList<String>,
+    storage: Storage
+): Long {
+    val parsed = FstSerDe().csvToBin(file, ".data.bin", mapper, storage)
+    result += parsed.fstFileName
+    storage.remove(file)
+    return parsed.numRows.toLong()
 }

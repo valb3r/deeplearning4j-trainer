@@ -16,6 +16,10 @@ import com.valb3r.deeplearning4j_trainer.repository.ProcessRepository
 import com.valb3r.deeplearning4j_trainer.repository.TrainingProcessRepository
 import com.valb3r.deeplearning4j_trainer.service.MermaidSchemaExtractor
 import com.valb3r.deeplearning4j_trainer.service.poisonPill
+import com.valb3r.deeplearning4j_trainer.storage.StorageService
+import com.valb3r.deeplearning4j_trainer.storage.resolve
+import liquibase.pro.packaged.aa
+import org.apache.commons.io.IOUtils
 import org.flowable.engine.RepositoryService
 import org.flowable.engine.RuntimeService
 import org.springframework.core.io.InputStreamResource
@@ -53,7 +57,8 @@ class UserController(
     private val processRepository: ProcessRepository,
     private val runtime: RuntimeService,
     private val directoriesConfig: DirectoriesConfig,
-    private val mermaidExtractor: MermaidSchemaExtractor
+    private val mermaidExtractor: MermaidSchemaExtractor,
+    private val storage: StorageService
 ) {
 
     companion object {
@@ -111,22 +116,20 @@ class UserController(
             ?: return "redirect:/user/processes/new-process.html?error=missing-process-def"
 
         val name = LocalDateTime.now().toString()
-        val input = File(directoriesConfig.input).resolve(name).absolutePath
-        val output = File(directoriesConfig.output).resolve(name).absolutePath
+        val inputDir = directoriesConfig.input.resolve(name)
+        val outputDir = directoriesConfig.output.resolve(name)
 
-        val inputDir = File(input)
-        inputDir.mkdirs()
-        val outputDir = File(output)
-        outputDir.mkdirs()
         if (files.any { it.originalFilename?.isBlank() != false }) {
             throw IllegalArgumentException("Empty filename")
         }
 
-        files.forEach { it.transferTo(inputDir.resolve(it.originalFilename!!)) }
+        files.forEach {
+            storage.write(inputDir.resolve(it.originalFilename!!)).use { os -> it.inputStream.use {inp -> IOUtils.copy(inp, os) }}
+        }
         runtime.startProcessInstanceById(
             definition.id,
             businessKey,
-            mapOf(INPUT to InputContext(input, output))
+            mapOf(INPUT to InputContext(inputDir, outputDir))
         )
         return "redirect:/"
     }
@@ -151,22 +154,20 @@ class UserController(
         val ctx = trainingProcessRepository.findByProcessId(trainingProcessId)!!.getCtx()!!
 
         val name = LocalDateTime.now().toString()
-        val input = File(directoriesConfig.input).resolve(name).absolutePath
-        val output = File(directoriesConfig.output).resolve(name).absolutePath
+        val inputDir = directoriesConfig.input.resolve(name)
+        val outputDir = directoriesConfig.output.resolve(name)
 
-        val inputDir = File(input)
-        inputDir.mkdirs()
-        val outputDir = File(output)
-        outputDir.mkdirs()
         if (files.any { it.originalFilename?.isBlank() != false }) {
             throw IllegalArgumentException("Empty filename")
         }
 
-        files.forEach { it.transferTo(inputDir.resolve(it.originalFilename!!)) }
+        files.forEach {
+            storage.write(inputDir.resolve(it.originalFilename!!)).use { os -> it.inputStream.use {inp -> IOUtils.copy(inp, os) }}
+        }
         runtime.startProcessInstanceById(
             definition.id,
             businessKey,
-            mapOf(INPUT to InputContext(input, output,  ctx.trainedModelPath, if (useTrainingData) ctx.inputFiles else null ))
+            mapOf(INPUT to InputContext(inputDir, outputDir,  ctx.trainedModelPath, if (useTrainingData) ctx.inputFiles else null ))
         )
         return "redirect:/"
     }
@@ -191,22 +192,20 @@ class UserController(
         val ctx = trainingProcessRepository.findByProcessId(trainingProcessId)!!.getCtx()!!
 
         val name = LocalDateTime.now().toString()
-        val input = File(directoriesConfig.input).resolve(name).absolutePath
-        val output = File(directoriesConfig.output).resolve(name).absolutePath
+        val inputDir = directoriesConfig.input.resolve(name)
+        val outputDir = directoriesConfig.output.resolve(name)
 
-        val inputDir = File(input)
-        inputDir.mkdirs()
-        val outputDir = File(output)
-        outputDir.mkdirs()
         if (files.any { it.originalFilename?.isBlank() != false }) {
             throw IllegalArgumentException("Empty filename")
         }
 
-        files.forEach { it.transferTo(inputDir.resolve(it.originalFilename!!)) }
+        files.forEach {
+            storage.write(inputDir.resolve(it.originalFilename!!)).use { os -> it.inputStream.use {inp -> IOUtils.copy(inp, os) }}
+        }
         runtime.startProcessInstanceById(
             definition.id,
             businessKey,
-            mapOf(INPUT to InputContext(input, output, dataFilesPath = ctx.inputFiles ))
+            mapOf(INPUT to InputContext(inputDir, outputDir, dataFilesPath = ctx.inputFiles ))
         )
         return "redirect:/"
     }
@@ -288,19 +287,19 @@ class UserController(
         return ResponseEntity.ok()
             .header("Content-Disposition", "attachment; filename=model-${readBusinessKey(processId)}-${if (downloadLatest) 'l' else 'b'}-${if (downloadLatest) proc.currentEpoch else proc.bestPerformingEpoch}.fb")
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .body(InputStreamResource(File(proc.modelPath(downloadLatest)).inputStream()))
+            .body(InputStreamResource(storage.read(proc.modelPath(downloadLatest))))
     }
 
     @ResponseBody
     @GetMapping("user/processes/{id}/download-dataset", produces = ["application/octet-stream"])
     fun downloadDataset(@PathVariable("id") processId: String, @RequestParam("dataSetPos") dataSetPos: Int): ResponseEntity<InputStreamResource> {
         val proc = processRepository.findByProcessId(processId)!!
-        val file = File(proc.getCtx()!!.inputFiles[dataSetPos])
+        val file = proc.getCtx()!!.inputFiles[dataSetPos]
 
         return ResponseEntity.ok()
-            .header("Content-Disposition", "attachment; filename=model-${readBusinessKey(processId)}-${file.nameWithoutExtension}-#${dataSetPos}.bin")
+            .header("Content-Disposition", "attachment; filename=model-${readBusinessKey(processId)}-${File(file).nameWithoutExtension}-#${dataSetPos}.bin")
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .body(InputStreamResource(file.inputStream()));
+            .body(InputStreamResource(storage.read(file)))
     }
 
     @PostMapping("user/processes/{id}/abort")
@@ -332,11 +331,11 @@ class UserController(
 
         when (proc) {
             is TrainingProcess -> {
-                FileSystemUtils.deleteRecursively(File(proc.getCtx()!!.inputDataPath))
-                FileSystemUtils.deleteRecursively(File(proc.getCtx()!!.outputDataPath))
+                storage.list(proc.getCtx()!!.inputDataPath, true).forEach { storage.remove(it) }
+                storage.list(proc.getCtx()!!.outputDataPath, true).forEach { storage.remove(it) }
             }
             is ValidationProcess -> {
-                FileSystemUtils.deleteRecursively(File(proc.getCtx()!!.validationDataPath))
+                storage.list(proc.getCtx()!!.validationDataPath, true).forEach { storage.remove(it) }
             }
         }
         processRepository.delete(proc)
@@ -374,7 +373,7 @@ class UserController(
         var result = ""
         ctx!!.inputFiles.forEach { file ->
             result += "$file \n"
-            val iter = FstSerDe.FstIterator(file)
+            val iter = FstSerDe.FstIterator(file, storage)
             for (line in (0 until 10)) {
                 if (!iter.hasNext()) {
                     break

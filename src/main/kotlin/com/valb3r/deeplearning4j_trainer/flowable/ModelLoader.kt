@@ -1,18 +1,23 @@
 package com.valb3r.deeplearning4j_trainer.flowable
 
+import com.valb3r.deeplearning4j_trainer.storage.StorageService
+import com.valb3r.deeplearning4j_trainer.storage.wrapToByteBuffer
 import mu.KotlinLogging
 import org.flowable.engine.delegate.DelegateExecution
 import org.nd4j.autodiff.samediff.SameDiff
 import org.springframework.stereotype.Service
-import java.io.File
+import java.nio.channels.Channels
 
 private val logger = KotlinLogging.logger {}
 @Service("modelLoader")
-class ModelLoader: WrappedJavaDelegate() {
+class ModelLoader(private val storage: StorageService): WrappedJavaDelegate() {
 
     override fun doExecute(execution: DelegateExecution) {
         val trainingSpec = execution.getContext()!!.trainingSpec
-        val sd = SameDiff.fromFlatFile(File(execution.getContext()!!.modelPath!!), trainingSpec.loadUpdaterStateFromFbOnNew)
+        val sd = SameDiff.fromFlatBuffers(
+            storage.read(execution.getContext()!!.modelPath!!).wrapToByteBuffer(),
+            trainingSpec.loadUpdaterStateFromFbOnNew
+        )
 
         if (!trainingSpec.loadUpdaterStateFromFbOnNew) {
             logger.info { "Not using updater state from SameDiff flat buffers" }
@@ -21,6 +26,8 @@ class ModelLoader: WrappedJavaDelegate() {
             logger.info { "Using updater state from SameDiff flat buffers" }
         }
 
-        sd.asFlatFile(File(execution.getContext()!!.trainedModelPath), trainingSpec.loadUpdaterStateFromFbOnNew)
+        storage.write(execution.getContext()!!.trainedModelPath).use {
+            Channels.newChannel(it).write(sd.asFlatBuffers(trainingSpec.loadUpdaterStateFromFbOnNew))
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.valb3r.deeplearning4j_trainer.flowable.dto
 
 import com.valb3r.deeplearning4j_trainer.flowable.FilePoolFlatBufferDatasetIterator
+import com.valb3r.deeplearning4j_trainer.storage.Storage
 
 data class ValidationContext(
     val validationDataPath: String,
@@ -12,8 +13,9 @@ data class ValidationContext(
     override var currentEpoch: Long,
     val loss: Double? = null
 ): Context {
-    fun validationIterator(): FilePoolFlatBufferDatasetIterator {
+    fun validationIterator(storage: Storage): FilePoolFlatBufferDatasetIterator {
         return FilePoolFlatBufferDatasetIterator(
+            storage,
             datasetSize,
             validationSpec.batchSize,
             validationSpec.featureVars,

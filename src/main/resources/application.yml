@@ -30,8 +30,8 @@ server:
   forward-headers-strategy: framework
 
 directories:
-  input: ./input
-  output: ./output
+  input: file:///tmp/trainer/input
+  output: file:///tmp/trainer/output
 
 access:
   users:

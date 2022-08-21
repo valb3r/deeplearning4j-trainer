@@ -6,6 +6,7 @@ import com.valb3r.deeplearning4j_trainer.samediff.SlowFourierTransformLayerFacto
 import com.valb3r.deeplearning4j_trainer.samediff.WeightShape
 import com.valb3r.deeplearning4j_trainer.flowable.*
 import com.valb3r.deeplearning4j_trainer.flowable.dto.*
+import com.valb3r.deeplearning4j_trainer.storage.StorageService
 import org.flowable.engine.delegate.DelegateExecution
 import org.nd4j.autodiff.samediff.SDIndex
 import org.nd4j.autodiff.samediff.SDVariable
@@ -19,7 +20,7 @@ import org.nd4j.weightinit.impl.XavierInitScheme
 import org.springframework.stereotype.Service
 
 @Service("newModelGenerator")
-class NewModelGenerator: WrappedJavaDelegate() {
+class NewModelGenerator(private val storage: StorageService): WrappedJavaDelegate() {
 
     override fun doExecute(execution: DelegateExecution) {
         val createdReferencableLayersByName = mutableMapOf<String, SdDenseLayerFactory>()
@@ -45,7 +46,7 @@ class NewModelGenerator: WrappedJavaDelegate() {
         }
         makeLoss(sd, trainingSpec.loss)
         makeTrainConfig(sd, trainingSpec)
-        execution.storeSameDiff(sd)
+        execution.storeSameDiff(sd, storage)
     }
 
     private fun makeConcatLayer(sd: SameDiff, layerDef: ConcatLayerDef): SDVariable {

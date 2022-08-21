@@ -3,6 +3,7 @@ package com.valb3r.deeplearning4j_trainer.flowable.training
 import com.valb3r.deeplearning4j_trainer.flowable.*
 import com.valb3r.deeplearning4j_trainer.repository.TrainingProcessRepository
 import com.valb3r.deeplearning4j_trainer.service.poisonPill
+import com.valb3r.deeplearning4j_trainer.storage.StorageService
 import org.flowable.engine.delegate.DelegateExecution
 import org.nd4j.autodiff.listeners.At
 import org.nd4j.autodiff.listeners.BaseListener
@@ -14,7 +15,7 @@ import org.nd4j.linalg.dataset.api.MultiDataSet
 import org.springframework.stereotype.Service
 
 @Service("modelTrainer")
-class ModelTrainer(private val trainingRepo: TrainingProcessRepository): WrappedJavaDelegate() {
+class ModelTrainer(private val trainingRepo: TrainingProcessRepository, private val storage: StorageService): WrappedJavaDelegate() {
 
     override fun doExecute(execution: DelegateExecution) {
         if (poisonPill.remove(execution.processInstanceId)) {
@@ -22,17 +23,17 @@ class ModelTrainer(private val trainingRepo: TrainingProcessRepository): Wrapped
         }
 
         val ctx = execution.getContext()
-        val sd = execution.loadSameDiff()
+        val sd = execution.loadSameDiff(storage)
 
         val lossListener = LossListener()
         sd.fit(
-            ctx!!.trainingIterator(),
+            ctx!!.trainingIterator(storage),
             1,
             ScoreListener(10),
             lossListener
         )
 
-        execution.storeSameDiff(sd)
+        execution.storeSameDiff(sd, storage)
         execution.updateContext { it.copy(
             loss = lossListener.loss,
             updaterName = sd.trainingConfig.updater.javaClass.simpleName,
@@ -40,7 +41,7 @@ class ModelTrainer(private val trainingRepo: TrainingProcessRepository): Wrapped
         ) }
         val process = trainingRepo.findByProcessId(execution.processInstanceId)!!
         process.setCtx(ctx)
-        process.updatePerformance(sd, lossListener.loss, lossListener.epoch)
+        process.updatePerformance(sd, lossListener.loss, lossListener.epoch, storage)
         trainingRepo.save(process)
     }
 

@@ -130,8 +130,8 @@ class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext
     override fun initialize(configurableApplicationContext: ConfigurableApplicationContext) {
         val properties: MutableList<String> = ArrayList()
         val tmpDir = Files.createTempDirectory("trainer-it-")
-        properties.add("directories.input=${tmpDir.resolve("input").toAbsolutePath()}")
-        properties.add("directories.output=${tmpDir.resolve("output").toAbsolutePath()}")
+        properties.add("directories.input=file://${tmpDir.resolve("input").toAbsolutePath()}")
+        properties.add("directories.output=file://${tmpDir.resolve("output").toAbsolutePath()}")
         TestPropertyValues.of(properties).applyTo(configurableApplicationContext.environment)
     }
 }

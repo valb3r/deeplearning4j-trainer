@@ -11,6 +11,9 @@ import com.valb3r.deeplearning4j_trainer.flowable.dto.ModelSpec
 import com.valb3r.deeplearning4j_trainer.flowable.dto.TrainingContext
 import com.valb3r.deeplearning4j_trainer.flowable.dto.TrainingSpec
 import com.valb3r.deeplearning4j_trainer.repository.TrainingProcessRepository
+import com.valb3r.deeplearning4j_trainer.storage.Storage
+import com.valb3r.deeplearning4j_trainer.storage.StorageService
+import com.valb3r.deeplearning4j_trainer.storage.resolve
 import org.flowable.engine.delegate.BpmnError
 import org.flowable.engine.delegate.DelegateExecution
 import org.springframework.beans.factory.annotation.Qualifier
@@ -30,7 +33,8 @@ import java.io.File
 @Service("trainingDataInputValidatorAndLoader")
 class TrainingDataInputValidatorAndLoader(
     @Qualifier("yamlObjectMapper") private val yamlObjectMapper: ObjectMapper,
-    private val trainingRepo: TrainingProcessRepository
+    private val trainingRepo: TrainingProcessRepository,
+    private val storage: StorageService
 ): WrappedJavaDelegate() {
 
     override fun doExecute(execution: DelegateExecution) {
@@ -44,9 +48,9 @@ class TrainingDataInputValidatorAndLoader(
         trainingProc = trainingRepo.save(trainingProc)
 
         val ctx = execution.getInput()
-        val inputFolder = File(ctx.inputDataPath)
-        extractZipFiles(inputFolder)
-        val files = inputFolder.listFiles()!!.map { it.absolutePath }
+        val inputFolder = ctx.inputDataPath
+        extractZipFilesAndDeleteArch(inputFolder, storage)
+        val files = storage.list(inputFolder)
         val dataFiles = ctx.dataFilesPath ?: files.filter { it.endsWith(".csv") || it.endsWith(".csv.data.bin") }
         val trainSpecFiles = files.filter { it.endsWith(".train.yaml") }
         val modelFiles = files.filter { it.endsWith(".fb") }
@@ -78,11 +82,13 @@ class TrainingDataInputValidatorAndLoader(
             throw BpmnError("INPUT_ERR", "No data files available")
         }
 
-        val trainSpec = yamlObjectMapper.readValue(inputFolder.resolve(trainSpecFiles.first()), TrainingSpec::class.java)
-        val modelSpec = modelSpecFiles.firstOrNull()?.let { yamlObjectMapper.readValue(inputFolder.resolve(it), ModelSpec::class.java) }
+        val trainSpec = storage.read(inputFolder.resolve(trainSpecFiles.first())).use { yamlObjectMapper.readValue(it, TrainingSpec::class.java) }
+        val modelSpec = modelSpecFiles.firstOrNull()?.let {
+            storage.read(inputFolder.resolve(it)).use { yamlObjectMapper.readValue(it, ModelSpec::class.java) }
+        }
         val filesAndDatasetSize = countRowsAndTranslateInputDataFilesToBinFormat(dataFiles)
-        val logPath = File(ctx.outputDataPath).resolve("${execution.processInstanceId}.log").absolutePath
-        val trainedModelPath = File(ctx.outputDataPath).resolve("model.fb").absolutePath
+        val logPath = ctx.outputDataPath.resolve("${execution.processInstanceId}.log")
+        val trainedModelPath = ctx.outputDataPath.resolve("model.fb")
 
         val trainingCtx = TrainingContext(
             inputDataPath = ctx.inputDataPath,
@@ -122,25 +128,14 @@ class TrainingDataInputValidatorAndLoader(
         for (file in files) {
             if (file.endsWith(".csv.data.bin")) {
                 var count = 0
-                FstSerDe.FstIterator(file).forEachRemaining { count++ }
+                FstSerDe.FstIterator(file, storage).forEachRemaining { count++ }
                 result += file
                 totalRows += count
             } else {
-                totalRows += csvToBin(file, mapper, result)
+                totalRows += csvToBinAndRemoveSrc(file, mapper, result, storage)
             }
         }
 
         return Pair(result, totalRows)
-    }
-
-    private fun csvToBin(
-        file: String,
-        mapper: CsvMapper,
-        result: MutableList<String>
-    ): Long {
-        val parsed = FstSerDe().csvToBin(file, ".data.bin", mapper)
-        result += parsed.fstFileName
-        File(file).delete()
-        return parsed.numRows.toLong()
     }
 }

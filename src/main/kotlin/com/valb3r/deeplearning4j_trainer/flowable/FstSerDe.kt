@@ -3,6 +3,7 @@ package com.valb3r.deeplearning4j_trainer.flowable
 import com.fasterxml.jackson.databind.MappingIterator
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.fasterxml.jackson.dataformat.csv.CsvParser
+import com.valb3r.deeplearning4j_trainer.storage.Storage
 import java.io.Closeable
 import java.io.File
 import java.nio.ByteBuffer
@@ -15,13 +16,13 @@ class FstSerDe {
     // size(int),headerName2
     // size(int),vectorFloat[data of field 1],
     // size(int),vectorFloat[data of field 2]
-    fun csvToBin(file: String, suffix: String, mapper: CsvMapper): SerOutp {
+    fun csvToBin(file: String, suffix: String, mapper: CsvMapper, storage: Storage): SerOutp {
         val fstFileName = "$file$suffix"
         var count = 0
-        File(fstFileName).outputStream().use { fof ->
+        storage.write(fstFileName).use { fof ->
             val iter: MappingIterator<List<String>> = mapper.readerForListOf(String::class.java)
                 .with(CsvParser.Feature.WRAP_AS_ARRAY)
-                .readValues(File(file))
+                .readValues(storage.read(file))
             var headerWritten = false
             iter.forEachRemaining { row ->
                 if (!headerWritten) {
@@ -51,9 +52,9 @@ class FstSerDe {
 
     data class SerOutp(val fstFileName: String, val numRows: Int)
 
-    class FstIterator(file: String): Iterator<Map<String, FloatArray>>, Closeable {
+    class FstIterator(file: String, storage: Storage): Iterator<Map<String, FloatArray>>, Closeable {
 
-        private val fIf = File(file).inputStream()
+        private val fIf = storage.read(file)
         private val headerNames: List<String>
         private var vectorSize: Int = 0
 

@@ -1,6 +1,7 @@
 package com.valb3r.deeplearning4j_trainer.flowable.dto
 
 import com.valb3r.deeplearning4j_trainer.flowable.FilePoolFlatBufferDatasetIterator
+import com.valb3r.deeplearning4j_trainer.storage.Storage
 
 data class TrainingContext(
     val inputDataPath: String,
@@ -17,8 +18,9 @@ data class TrainingContext(
     val updaterName: String? = null,
     val updaterStep: String? = null
 ): Context {
-    fun trainingIterator(): FilePoolFlatBufferDatasetIterator {
+    fun trainingIterator(storage: Storage): FilePoolFlatBufferDatasetIterator {
         return FilePoolFlatBufferDatasetIterator(
+            storage,
             datasetSize,
             trainingSpec.batchSize,
             trainingSpec.featureVars,

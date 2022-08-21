@@ -8,6 +8,7 @@ import com.valb3r.deeplearning4j_trainer.flowable.loadValidationSameDiff
 import com.valb3r.deeplearning4j_trainer.flowable.uniqName
 import com.valb3r.deeplearning4j_trainer.repository.ValidationProcessRepository
 import com.valb3r.deeplearning4j_trainer.service.poisonPill
+import com.valb3r.deeplearning4j_trainer.storage.StorageService
 import org.flowable.engine.delegate.DelegateExecution
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.springframework.stereotype.Service
@@ -15,7 +16,8 @@ import org.springframework.stereotype.Service
 @Service("modelValidator")
 class ModelValidator(
     private val validationRepo: ValidationProcessRepository,
-    private val mapper: ObjectMapper
+    private val mapper: ObjectMapper,
+    private val storage: StorageService
 ): WrappedJavaDelegate() {
 
     override fun doExecute(execution: DelegateExecution) {
@@ -24,7 +26,7 @@ class ModelValidator(
         }
 
         val ctx = execution.getValidationContext()!!
-        val sd = execution.loadValidationSameDiff()
+        val sd = execution.loadValidationSameDiff(storage)
         val parser = ExpressionParser(sd)
         val variables = mutableSetOf<String>()
         val renames = mutableMapOf<String, String>()
@@ -40,7 +42,7 @@ class ModelValidator(
             variables += it.labelVar
         }
 
-        val iter = ctx.validationIterator()
+        val iter = ctx.validationIterator(storage)
         val result = sd.output(iter, *variables.toTypedArray())
 
         val metrics = mutableMapOf<String, Map<String, Float>>()

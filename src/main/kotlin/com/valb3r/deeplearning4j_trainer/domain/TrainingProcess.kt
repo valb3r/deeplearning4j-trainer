@@ -1,9 +1,12 @@
 package com.valb3r.deeplearning4j_trainer.domain
 
 import com.valb3r.deeplearning4j_trainer.flowable.dto.TrainingContext
+import com.valb3r.deeplearning4j_trainer.storage.Storage
+import com.valb3r.deeplearning4j_trainer.storage.resolve
 import org.hibernate.annotations.Type
 import org.nd4j.autodiff.samediff.SameDiff
 import java.io.File
+import java.nio.channels.Channels
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Lob
@@ -31,17 +34,17 @@ class TrainingProcess(
         this.trainingContext = domainCtxMapper.writeValueAsBytes(trainingContext)
     }
 
-    fun updatePerformance(sd: SameDiff, loss: Double, epoch: Long) {
+    fun updatePerformance(sd: SameDiff, loss: Double, epoch: Long, storage: Storage) {
         if (loss > (bestLoss ?: Double.MAX_VALUE)) {
             return
         }
 
         val ctx = getCtx()
-        val output = File(ctx!!.outputDataPath).resolve("best-perf-model-${businessKey}.fb")
-        sd.asFlatFile(output)
+        val output = ctx!!.outputDataPath.resolve("best-perf-model-${businessKey}.fb")
+        storage.write(output).use { Channels.newChannel(it).write(sd.asFlatBuffers(true)) }
         bestPerformingEpoch = epoch
         bestLoss = loss
-        bestPerformingTrainedModelPath = output.absolutePath
+        bestPerformingTrainedModelPath = output
     }
 
     fun setCtx(ctx: TrainingContext) {

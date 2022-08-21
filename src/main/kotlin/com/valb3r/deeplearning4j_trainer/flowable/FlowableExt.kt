@@ -3,9 +3,12 @@ package com.valb3r.deeplearning4j_trainer.flowable
 import com.valb3r.deeplearning4j_trainer.flowable.dto.InputContext
 import com.valb3r.deeplearning4j_trainer.flowable.dto.TrainingContext
 import com.valb3r.deeplearning4j_trainer.flowable.dto.ValidationContext
+import com.valb3r.deeplearning4j_trainer.storage.Storage
+import com.valb3r.deeplearning4j_trainer.storage.wrapToByteBuffer
 import org.flowable.engine.delegate.DelegateExecution
 import org.nd4j.autodiff.samediff.SameDiff
-import java.io.File
+import java.nio.channels.Channels
+import java.nio.channels.WritableByteChannel
 
 const val INPUT = "INPUT"
 const val CONTEXT = "CONTEXT"
@@ -30,14 +33,14 @@ fun DelegateExecution.updateContext(updater: (ctx: TrainingContext) -> TrainingC
     this.setContext(updater(this.getContext()!!))
 }
 
-fun DelegateExecution.loadSameDiff(): SameDiff {
-    val sd = SameDiff.fromFlatFile(File(this.getContext()!!.trainedModelPath))
+fun DelegateExecution.loadSameDiff(storage: Storage): SameDiff {
+    val sd = SameDiff.fromFlatBuffers(storage.read(this.getContext()!!.trainedModelPath).wrapToByteBuffer())
     cleanup(sd)
     return sd
 }
 
-fun DelegateExecution.loadValidationSameDiff(): SameDiff {
-    val sd = SameDiff.fromFlatFile(File(this.getValidationContext()!!.trainedModelPath))
+fun DelegateExecution.loadValidationSameDiff(storage: Storage): SameDiff {
+    val sd = SameDiff.fromFlatBuffers(storage.read(this.getValidationContext()!!.trainedModelPath).wrapToByteBuffer())
     cleanup(sd)
     return sd
 }
@@ -49,6 +52,8 @@ private fun cleanup(sd: SameDiff) {
     badVars.forEach { sd.variables.remove(it) }
 }
 
-fun DelegateExecution.storeSameDiff(sd: SameDiff) {
-    sd.asFlatFile(File(this.getContext()!!.trainedModelPath))
+fun DelegateExecution.storeSameDiff(sd: SameDiff, storage: Storage) {
+    storage.write(this.getContext()!!.trainedModelPath).use {
+        Channels.newChannel(it).write(sd.asFlatBuffers(true))
+    }
 }

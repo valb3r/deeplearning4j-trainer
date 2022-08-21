@@ -60,9 +60,15 @@ dependencies {
     implementation("org.deeplearning4j:deeplearning4j-core:${dl4jMasterVersion}")
     implementation("org.deeplearning4j:deeplearning4j-datasets:${dl4jMasterVersion}")
 
+    // MacOs compat (for 1.0-M1.1 - 1.0-M2.0)
     runtimeOnly("org.nd4j:nd4j-native-platform:${dl4jMasterVersion}")
     runtimeOnly("org.nd4j:nd4j-native:${dl4jMasterVersion}:macosx-x86_64")
 
+    // Minio S3 connectivity
+    implementation("com.amazonaws:aws-java-sdk-s3:1.12.285")
+    implementation("com.amazonaws:aws-java-sdk-core:1.12.285")
+
+    // Common
     compileOnly("org.projectlombok:lombok:1.18.24")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.0")

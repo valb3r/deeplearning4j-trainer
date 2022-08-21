@@ -1,16 +1,22 @@
 package com.valb3r.deeplearning4j_trainer.service
 
 import com.valb3r.deeplearning4j_trainer.repository.ProcessRepository
+import com.valb3r.deeplearning4j_trainer.storage.Storage
+import com.valb3r.deeplearning4j_trainer.storage.StorageService
+import com.valb3r.deeplearning4j_trainer.storage.wrapToByteBuffer
 import org.nd4j.autodiff.samediff.SameDiff
 import org.springframework.stereotype.Service
 import java.io.File
 
 @Service
-class MermaidSchemaExtractor(private val processRepository: ProcessRepository) {
+class MermaidSchemaExtractor(
+    private val processRepository: ProcessRepository,
+    private val storage: StorageService
+) {
 
     fun extract(processId: String): String {
         val proc = processRepository.findByProcessId(processId)!!
-        val sd = SameDiff.fromFlatFile(File(proc.modelPath(true)))
+        val sd = SameDiff.fromFlatBuffers(storage.read(proc.modelPath(true)).wrapToByteBuffer())
         val structure = StringBuilder()
         structure.append("\nflowchart TD\n")
         val inputVars = sd.inputs().toSet()

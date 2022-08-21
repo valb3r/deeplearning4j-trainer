@@ -1,5 +1,6 @@
 package com.valb3r.deeplearning4j_trainer.flowable
 
+import com.valb3r.deeplearning4j_trainer.storage.Storage
 import org.nd4j.linalg.dataset.api.MultiDataSet
 import org.nd4j.linalg.dataset.api.MultiDataSetPreProcessor
 import org.nd4j.linalg.dataset.api.iterator.MultiDataSetIterator
@@ -7,6 +8,7 @@ import org.nd4j.linalg.factory.Nd4j
 
 
 class FilePoolFlatBufferDatasetIterator(
+    private val storage: Storage,
     private val dataSize: Long,
     private val batchSize: Int,
     private val featureNames: List<String>,
@@ -33,7 +35,7 @@ class FilePoolFlatBufferDatasetIterator(
                 }
                 val file = dataFilePool.first()
                 dataFilePool.remove(file)
-                binIter = FstSerDe.FstIterator(file)
+                binIter = FstSerDe.FstIterator(file, storage)
             }
             val entry = binIter!!.next()
 
@@ -84,7 +86,7 @@ class FilePoolFlatBufferDatasetIterator(
             }
             val file = dataFilePool.first()
             dataFilePool.remove(file)
-            binIter = FstSerDe.FstIterator(file)
+            binIter = FstSerDe.FstIterator(file, storage)
         }
 
         binIter!!.skipNext()
