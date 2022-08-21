@@ -8,11 +8,9 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.iterable.S3Objects
 import com.google.common.cache.CacheBuilder
 import com.valb3r.deeplearning4j_trainer.config.S3Config
-import org.aspectj.weaver.tools.cache.SimpleCacheFactory.path
 import org.springframework.stereotype.Service
 import java.io.InputStream
 import java.io.OutputStream
-import java.net.URI
 import java.time.Duration
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor

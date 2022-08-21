@@ -6,14 +6,14 @@ variable "deeplearning4j_trainer_namespace" {
 
 variable "deeplearning4j_trainer_service_name" {
   type        = string
-  default     = "deeplearning4j_trainer-db"
-  description = "Name for service and resources of deeplearning4j_trainer DB"
+  default     = "deeplearning4j-trainer-db"
+  description = "Name for service and resources of deeplearning4j-trainer DB"
 }
 
 variable "deeplearning4j_trainer_db_name" {
   type        = string
   default     = "deeplearning4j_trainer"
-  description = "Name for service and resources of deeplearning4j_trainer DB"
+  description = "Name for service and resources of deeplearning4j-trainer DB"
 }
 
 variable "deeplearning4j_trainer_db_team" {
@@ -25,7 +25,7 @@ variable "deeplearning4j_trainer_db_team" {
 variable "deeplearning4j_trainer_schema_name" {
   type        = string
   default     = "deeplearning4j_trainer"
-  description = "Schema of deeplearning4j_trainer DB"
+  description = "Schema of deeplearning4j-trainer DB"
 }
 
 variable "db_instances" {

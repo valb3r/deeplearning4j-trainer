@@ -1,0 +1,3 @@
+module "databases" {
+  source = "./databases"
+}
