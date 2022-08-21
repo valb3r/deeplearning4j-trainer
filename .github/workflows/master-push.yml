@@ -42,7 +42,7 @@ jobs:
         run: ./gradlew buildImage
 
       - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
+        uses: mxschmitt/action-tmate@v3
 
       - name: Push To Github container registry
         uses: redhat-actions/push-to-registry@v2
