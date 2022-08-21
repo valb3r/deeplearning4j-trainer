@@ -165,6 +165,7 @@ tasks.register("createDockerfile", com.bmuschko.gradle.docker.tasks.image.Docker
 tasks.register("buildImage", com.bmuschko.gradle.docker.tasks.image.DockerBuildImage::class) {
     dependsOn("createDockerfile", "syncJar")
     images.add("deeplearning4j_trainer/deeplearning4j_trainer-trainer:${commitSha}")
+    images.add("deeplearning4j_trainer/deeplearning4j_trainer-trainer:latest")
 }
 
 tasks.register("printCommitSha") {
