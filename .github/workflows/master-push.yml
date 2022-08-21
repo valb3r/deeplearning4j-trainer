@@ -41,6 +41,9 @@ jobs:
       - name: Build project docker images (UI and Backend)
         run: ./gradlew buildImage
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+
       - name: Push To Github container registry
         uses: redhat-actions/push-to-registry@v2
         with:
