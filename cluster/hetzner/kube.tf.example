@@ -125,6 +125,7 @@ module "kube-hetzner" {
   # * LB location and type, the latter will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
   load_balancer_type     = "lb11"
   load_balancer_location = "fsn1"
+  # load_balancer_disable_ipv6 = true     # Required for hetzner
 
   ### The following values are entirely optional (and can be removed from this if unused)
 
