@@ -33,3 +33,13 @@ variable "trainer_app_admin_password" {
   type        = string
   description = "Password of Deeplearning4j trainer admin"
 }
+
+variable "trainer_app_s3_access_key_id" {
+  type        = string
+  description = "S3 Access key id"
+}
+
+variable "trainer_app_s3_secret_key" {
+  type        = string
+  description = "S3 Secret key"
+}

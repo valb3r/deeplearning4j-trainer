@@ -1,6 +1,6 @@
 resource "kubernetes_secret" "trainer_admin_user_credentials" {
   metadata {
-    name = "basic-auth"
+    name = "trainer-admin-user-credentials"
   }
 
   data = {
@@ -10,6 +10,20 @@ resource "kubernetes_secret" "trainer_admin_user_credentials" {
 
   type = "kubernetes.io/basic-auth"
 }
+
+resource "kubernetes_secret" "trainer_admin_s3_credentials" {
+  metadata {
+    name = "trainer-admin-s3-credentials"
+  }
+
+  data = {
+    username = var.trainer_app_s3_access_key_id
+    password = var.trainer_app_s3_secret_key
+  }
+
+  type = "kubernetes.io/basic-auth"
+}
+
 
 resource "kubernetes_deployment" "deeplearning4j_trainer" {
   metadata {
@@ -76,6 +90,37 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
           env {
             name  = "SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE"
             value = "30"
+          }
+
+          env {
+            name = "DIRECTORIES_INPUT"
+            value = "s3://minio.minio-cluster.svc.cluster.local:443/training-bucket/input/"
+          }
+          env {
+            name = "DIRECTORIES_OUTPUT"
+            value = "s3://minio.minio-cluster.svc.cluster.local:443/training-bucket/output/"
+          }
+          env {
+            name = "S3_ACCESS_KEY_ID"
+            value_from {
+              secret_key_ref {
+                name = kubernetes_secret.trainer_admin_s3_credentials.metadata[0].name
+                key = "username"
+              }
+            }
+          }
+          env {
+            name = "S3_SECRET_KEY"
+            value_from {
+              secret_key_ref {
+                name = kubernetes_secret.trainer_admin_s3_credentials.metadata[0].name
+                key = "password"
+              }
+            }
+          }
+          env {
+            name = "S3_IS_HTTP"
+            value = "false"
           }
 
           # Define user:

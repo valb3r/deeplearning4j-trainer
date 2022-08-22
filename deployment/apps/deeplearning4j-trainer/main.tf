@@ -15,4 +15,7 @@ module "services" {
 
   trainer_app_admin_username = var.trainer_app_admin_username
   trainer_app_admin_password = var.trainer_app_admin_password
+
+  trainer_app_s3_access_key_id = var.trainer_app_s3_access_key_id
+  trainer_app_s3_secret_key = var.trainer_app_s3_secret_key
 }

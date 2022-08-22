@@ -6,3 +6,6 @@ github_docker_registry_password = <PASSWORD>
 
 trainer_app_admin_username=<USER>
 trainer_app_admin_password=<PASSWORD>
+
+trainer_app_s3_access_key_id=<KEY_ID>
+trainer_app_s3_secret_key=<SECRET>
