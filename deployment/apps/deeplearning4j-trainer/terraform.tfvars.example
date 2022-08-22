@@ -1,0 +1,5 @@
+# You need to replace these
+trainer_app_top_domain  = "example.com"
+github_docker_registry = "ghcr.io"
+github_docker_registry_user = "kube-dev"
+github_docker_registry_password = <PASSWORD>

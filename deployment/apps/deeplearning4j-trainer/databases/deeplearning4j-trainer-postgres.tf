@@ -3,7 +3,7 @@ resource "kubernetes_manifest" "deeplearning4j_trainer_postgres" {
     "apiVersion" = "acid.zalan.do/v1"
     "kind"       = "postgresql"
     "metadata"   = {
-      "name"      = var.deeplearning4j_trainer_service_name
+      "name"      = var.deeplearning4j_trainer_db_service_name
       "namespace" = var.deeplearning4j_trainer_namespace
     }
     "spec" = {
@@ -25,12 +25,12 @@ resource "kubernetes_manifest" "deeplearning4j_trainer_postgres" {
       "preparedDatabases" = {
         (var.deeplearning4j_trainer_db_name) = {
           "schemas" = {
-            (var.deeplearning4j_trainer_schema_name) = {
+            (var.deeplearning4j_trainer_db_schema_name) = {
               "defaultUsers": true
             }
           }
           "extensions" = {
-            "pg_trgm" = var.deeplearning4j_trainer_schema_name
+            "pg_trgm" = var.deeplearning4j_trainer_db_schema_name
           }
         }
       }

@@ -1,16 +1,16 @@
 terraform {
   required_providers {
-    kubernetes = {
-      source = "hashicorp/kubernetes"
-      version = "2.7.1"
-    }
-    kustomization = {
-      source = "kbst/kustomization"
-      version = "0.7.2"
+    github = {
+      source  = "integrations/github"
+      version = ">= 4.0.0, < 5.0.0"
     }
     local = {
       source  = "hashicorp/local"
       version = ">= 2.0.0, < 3.0.0"
+    }
+    kubernetes = {
+      source = "hashicorp/kubernetes"
+      version = "2.7.1"
     }
   }
 }

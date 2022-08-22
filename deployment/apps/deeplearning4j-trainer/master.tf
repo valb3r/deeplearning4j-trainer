@@ -1,3 +1,0 @@
-module "databases" {
-  source = "./databases"
-}
