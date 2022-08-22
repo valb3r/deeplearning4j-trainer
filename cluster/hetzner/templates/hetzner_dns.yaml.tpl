@@ -51,12 +51,6 @@ spec:
       labels:
         app: external-dns
     spec:
-      tolerations:
-        - key: "node-role.kubernetes.io/master"
-          effect: NoSchedule
-          operator: Exists
-      nodeSelector:
-        dedicated: master
       serviceAccountName: external-dns
       containers:
       - name: external-dns
