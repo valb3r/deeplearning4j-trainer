@@ -28,6 +28,9 @@ spec:
       - "--entryPoints.websecure.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
       - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
       - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
+%{ if hetzner_dns_enabled ~}
+      - "--certificatesresolvers.le.acme.dnschallenge.provider=hetzner" # External-DNS-Hetzner
+%{ endif ~}
 %{ for option in traefik_additional_options ~}
       - "${option}"
 %{ endfor ~}
@@ -35,4 +38,12 @@ spec:
       - "--certificatesresolvers.le.acme.tlschallenge=true"
       - "--certificatesresolvers.le.acme.email=${traefik_acme_email}"
       - "--certificatesresolvers.le.acme.storage=/data/acme.json"
+%{ endif ~}
+%{ if hetzner_dns_enabled ~}
+    env: # External-DNS-Hetzner
+      - name: HETZNER_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: hcloud-dns-token
+            key: token
 %{ endif ~}

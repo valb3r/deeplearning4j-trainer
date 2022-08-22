@@ -194,6 +194,11 @@ module "kube-hetzner" {
   #   }
   # ]
 
+  # If you want to enable Hetzner DNS domain management from within cluster:
+  # hetzner_dns_enabled = "true"
+  # hetzner_dns_domain = "example.com"
+  # hcloud-dns-token = "<PLACE TOKEN>"
+
   # If you want to configure additional Arguments for traefik, enter them here as a list and in the form of traefik CLI arguments; see https://doc.traefik.io/traefik/reference/static-configuration/cli/
   # Example: traefik_additional_options = ["--log.level=DEBUG", "--tracing=true"]
   # traefik_additional_options = []

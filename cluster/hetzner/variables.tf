@@ -4,6 +4,13 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
+variable "hcloud_dns_token" {
+  description = "Hetzner DNS API Token"
+  type        = string
+  sensitive   = true
+  default = null
+}
+
 variable "ssh_public_key" {
   description = "SSH public Key."
   type        = string
@@ -79,6 +86,18 @@ variable "kured_version" {
   type        = string
   default     = null
   description = "Version of Kured"
+}
+
+variable "hetzner_dns_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to enable or disbale k3s hetzner dns integration installation"
+}
+
+variable "hetzner_dns_domain" {
+  description = "Hetzner DNS Domain"
+  type        = string
+  default = null
 }
 
 variable "traefik_enabled" {

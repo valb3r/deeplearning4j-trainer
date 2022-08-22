@@ -98,6 +98,7 @@ resource "null_resource" "kustomization" {
         var.disable_hetzner_csi ? [] : [
           "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"
         ],
+        var.hetzner_dns_enabled ? ["hetzner_dns.yaml"] : [], # External-DNS-Hetzner
         var.traefik_enabled ? ["traefik_config.yaml"] : [],
         lookup(local.cni_install_resources, var.cni_plugin, []),
         var.enable_longhorn ? ["longhorn.yaml"] : [],
@@ -117,6 +118,17 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/kustomization.yaml"
   }
 
+  # Upload hetzner_dns config
+  provisioner "file" {
+    content = var.hetzner_dns_enabled ? templatefile(
+      "${path.module}/templates/hetzner_dns.yaml.tpl",
+      {
+        hetzner_dns_domain         = var.hetzner_dns_domain
+      }) : ""
+    destination = "/var/post_install/hetzner_dns.yaml"
+  }
+
+
   # Upload traefik config
   provisioner "file" {
     content = local.using_klipper_lb || var.traefik_enabled == false ? "" : templatefile(
@@ -130,6 +142,7 @@ resource "null_resource" "kustomization" {
         traefik_acme_email         = var.traefik_acme_email
         traefik_additional_options = var.traefik_additional_options
         using_hetzner_lb           = !local.using_klipper_lb
+        hetzner_dns_enabled        = var.hetzner_dns_enabled
     })
     destination = "/var/post_install/traefik_config.yaml"
   }
@@ -215,6 +228,14 @@ resource "null_resource" "kustomization" {
       "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
       "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -",
     ]
+  }
+
+  # Install Hetzner DNS secret if needed
+  provisioner "remote-exec" {
+    inline = var.hetzner_dns_enabled ? [
+      "set -ex",
+      "kubectl -n kube-system create secret generic hcloud-dns-token --from-literal=token=${var.hcloud_dns_token} --dry-run=client -o yaml | kubectl apply -f -",
+    ] : [ "set -ex" ] # NOP
   }
 
   # Deploy our post-installation kustomization
