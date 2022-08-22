@@ -48,4 +48,42 @@ spec:
           secretKeyRef:
             name: hcloud-dns-token
             key: token
+    ports:
+      traefik:
+        expose: false
+        exposedPort: 9000
+        port: 9000
+        protocol: TCP
+      web:
+        expose: true
+        exposedPort: 80
+        port: 8000
+        protocol: TCP
+        redirectTo: websecure
+      websecure:
+        expose: true
+        exposedPort: 443
+        port: 8443
+        protocol: TCP
+        tls:
+          certResolver: le
+          enabled: true
+          options: ""
+    persistence:
+      enabled: true
+      name: data
+      accessMode: ReadWriteOnce
+      size: 128Mi
+      storageClass: hcloud-volumes
+      path: /data
+    deployment:
+      # The "volume-permissions" init container is required if you run into permission issues.
+      initContainers:
+        # Related issue: https://github.com/traefik/traefik/issues/6972
+        - name: volume-permissions
+          image: busybox:1.31.1
+          command: ["sh", "-c", "chmod -Rv 600 /data/*"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
 %{ endif ~}

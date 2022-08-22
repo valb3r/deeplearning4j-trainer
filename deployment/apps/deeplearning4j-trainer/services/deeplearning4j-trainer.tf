@@ -127,6 +127,9 @@ resource "kubernetes_ingress_v1" "deeplearning4j_trainer" {
               }
             }
           }
+
+          path = "/"
+          path_type = "Prefix"
         }
       }
     }
