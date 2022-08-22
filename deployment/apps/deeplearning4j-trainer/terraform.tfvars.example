@@ -3,3 +3,6 @@ trainer_app_top_domain  = "example.com"
 github_docker_registry = "ghcr.io"
 github_docker_registry_user = "kube-dev"
 github_docker_registry_password = <PASSWORD>
+
+trainer_app_admin_username=<USER>
+trainer_app_admin_password=<PASSWORD>

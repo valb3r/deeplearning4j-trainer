@@ -36,3 +36,13 @@ variable "trainer_db_schema_name" {
   default     = "deeplearning4jtrainer"
   description = "Schema of Deeplearning4j trainer DB"
 }
+
+variable "trainer_app_admin_username" {
+  type        = string
+  description = "Username of Deeplearning4j trainer admin"
+}
+
+variable "trainer_app_admin_password" {
+  type        = string
+  description = "Password of Deeplearning4j trainer admin"
+}

@@ -23,3 +23,13 @@ variable "trainer_namespace" {
   default     = "default"
   description = "Namespace for Trainer application"
 }
+
+variable "trainer_app_admin_username" {
+  type        = string
+  description = "Username of Deeplearning4j trainer admin"
+}
+
+variable "trainer_app_admin_password" {
+  type        = string
+  description = "Password of Deeplearning4j trainer admin"
+}

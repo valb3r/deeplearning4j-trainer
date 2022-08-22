@@ -1,3 +1,16 @@
+resource "kubernetes_secret" "trainer_admin_user_credentials" {
+  metadata {
+    name = "basic-auth"
+  }
+
+  data = {
+    username = var.trainer_app_admin_username
+    password = var.trainer_app_admin_password
+  }
+
+  type = "kubernetes.io/basic-auth"
+}
+
 resource "kubernetes_deployment" "deeplearning4j_trainer" {
   metadata {
     name = "deeplearning4j-trainer"
@@ -65,6 +78,30 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
             value = "30"
           }
 
+          # Define user:
+          env {
+            name = "ACCESS_USERS_0_USERNAME"
+            value_from {
+              secret_key_ref {
+                name = kubernetes_secret.trainer_admin_user_credentials.metadata[0].name
+                key = "username"
+              }
+            }
+          }
+          env {
+            name = "ACCESS_USERS_0_PASSWORD"
+            value_from {
+              secret_key_ref {
+                name = kubernetes_secret.trainer_admin_user_credentials.metadata[0].name
+                key = "password"
+              }
+            }
+          }
+          env {
+            name = "ACCESS_USERS_0_ROLES"
+            value = "USER"
+          }
+
           resources {
             requests = {
               cpu    = "1"
@@ -80,6 +117,17 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
 
             initial_delay_seconds = 90
             period_seconds        = 10
+          }
+
+          # Install Kubernetes root certificate for Minio TLS:
+          lifecycle {
+            post_start {
+              exec {
+                command = [
+                  "/bin/sh", "-c", "cp /var/run/secrets/kubernetes.io/serviceaccount/ca.crt /usr/local/share/ca-certificates/ && update-ca-certificates"
+                ]
+              }
+            }
           }
         }
       }

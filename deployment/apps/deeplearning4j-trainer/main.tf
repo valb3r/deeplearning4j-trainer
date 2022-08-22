@@ -12,4 +12,7 @@ module "services" {
   trainer_db_name = module.databases.deeplearning4j_trainer_db_name
   trainer_db_team = module.databases.deeplearning4j_trainer_db_team_name
   trainer_db_schema_name = module.databases.deeplearning4j_trainer_db_name
+
+  trainer_app_admin_username = var.trainer_app_admin_username
+  trainer_app_admin_password = var.trainer_app_admin_password
 }
