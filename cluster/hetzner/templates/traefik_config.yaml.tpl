@@ -35,7 +35,9 @@ spec:
       - "${option}"
 %{ endfor ~}
 %{ if traefik_acme_tls ~}
+%{ if !hetzner_dns_enabled ~}
       - "--certificatesresolvers.le.acme.tlschallenge=true"
+%{ endif ~}
       - "--certificatesresolvers.le.acme.email=${traefik_acme_email}"
       - "--certificatesresolvers.le.acme.storage=/data/acme.json"
 %{ endif ~}
