@@ -54,7 +54,7 @@ spec:
       serviceAccountName: external-dns
       containers:
       - name: external-dns
-        image: k8s.gcr.io/external-dns/external-dns:v0.9.0
+        image: k8s.gcr.io/external-dns/external-dns:v0.10.2
         args:
         - --source=ingress # ingress is also possible
         - --domain-filter=${hetzner_dns_domain}
