@@ -24,11 +24,11 @@ private const val S3_PROTO = "s3://"
 class S3SystemStorage(private val conf: S3Config): StorageSystem {
 
     private val executorService = ThreadPoolExecutor(
-        10,
-        10,
+        2,
+        2,
         0L,
         TimeUnit.MILLISECONDS,
-        LinkedBlockingQueue(100),
+        LinkedBlockingQueue(1),
         ThreadPoolExecutor.CallerRunsPolicy()
     )
 

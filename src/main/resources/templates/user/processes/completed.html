@@ -46,11 +46,11 @@
             <td th:text="${i.processDefinitionName}"></td>
             <td th:text="${i.businessKey}"></td>
             <td th:text="${#temporals.format(i.updatedAt, 'yyyy-MM-dd''T''HH:mm:ssZZZ')}"></td>
-            <td th:if="${isTraining}" th:text="${#numbers.formatDecimal(i.getCtx().loss , 1, 4)}"></td>
+            <td th:if="${isTraining}" th:text="${#numbers.formatDecimal(i.getCtx()?.loss , 1, 4)}"></td>
             <td th:unless="${isTraining}"></td>
             <td th:if="${isTraining}" th:text="${#numbers.formatDecimal(i.bestLoss, 1, 4)}"></td>
             <td th:unless="${isTraining}"></td>
-            <td th:if="${isTraining}" th:text="|${(i.getCtx().currentEpoch ?: 0)} of ${(i.getCtx().trainingSpec?.numEpochs ?: 0)}|"></td>
+            <td th:if="${isTraining}" th:text="|${(i.getCtx()?.currentEpoch ?: 0)} of ${(i.getCtx()?.trainingSpec?.numEpochs ?: 0)}|"></td>
             <td th:unless="${isTraining}"></td>
             <td th:text="${i.completed ? 'COMPLETED' : 'RUNNING'}"></td>
             <td th:title="${i.getRevertedStacktrace()}">

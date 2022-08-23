@@ -11,15 +11,16 @@ import java.util.concurrent.ExecutorService
 import kotlin.math.min
 
 // Amazon S3 has maximum chunks of up to 5GB, max chunk count is 10_000
-const val BUFFER_SIZE = 1024 * 1024 * 100 // max upload size is 1Tb in 100Mb chunks
+const val BUFFER_SIZE = 1024 * 1024 * 10 // max upload size is 100Gb in 10Mb chunks
 
 class MultipartS3OutputStream(
     private val bucketName: String,
     private val objectName: String,
     private val amazonS3: AmazonS3,
-    executorService: ExecutorService?
+    executorService: ExecutorService
 ) : OutputStream() {
 
+    private val s3Wrapper = S3Wrapper(amazonS3)
     private val completionService: CompletionService<UploadPartResult>
     private var currentOutputStream: CustomizableByteArrayOutputStream? = newOutputStream()
     private var multiPartUploadResult: InitiateMultipartUploadResult? = null
@@ -72,18 +73,17 @@ class MultipartS3OutputStream(
 
         currentOutputStream = newOutputStream()
         val counter = partCounter
-        completionService.submit {
-            amazonS3.uploadPart(
-                UploadPartRequest()
-                    .withBucketName(bucketName)
-                    .withKey(objectName)
-                    .withUploadId(multiPartUploadResult!!.uploadId)
-                    .withInputStream(ByteArrayInputStream(content))
-                    .withPartNumber(counter)
-                    .withLastPart(false)
-                    .withPartSize(size.toLong())
-            )
-        }
+
+        val request = UploadPartRequest()
+            .withBucketName(bucketName)
+            .withKey(objectName)
+            .withUploadId(multiPartUploadResult!!.uploadId)
+            .withInputStream(ByteArrayInputStream(content))
+            .withPartNumber(counter)
+            .withLastPart(false)
+            .withPartSize(size.toLong())
+
+        completionService.submit { s3Wrapper.uploadPart(request) }
         ++partCounter
     }
 
@@ -139,18 +139,17 @@ class MultipartS3OutputStream(
 
         currentOutputStream = null
         val counter = partCounter
-        completionService.submit {
-            amazonS3.uploadPart(
-                UploadPartRequest()
-                    .withBucketName(bucketName)
-                    .withKey(objectName)
-                    .withUploadId(multiPartUploadResult!!.uploadId)
-                    .withInputStream(ByteArrayInputStream(content))
-                    .withPartNumber(counter)
-                    .withLastPart(true)
-                    .withPartSize(size.toLong())
-            )
-        }
+
+        val request = UploadPartRequest()
+            .withBucketName(bucketName)
+            .withKey(objectName)
+            .withUploadId(multiPartUploadResult!!.uploadId)
+            .withInputStream(ByteArrayInputStream(content))
+            .withPartNumber(counter)
+            .withLastPart(true)
+            .withPartSize(size.toLong())
+
+        completionService.submit { s3Wrapper.uploadPart(request) }
     }
 
     private fun initiateMultiPartIfNeeded() {
@@ -267,5 +266,12 @@ class MultipartS3OutputStream(
 
             buffer = buffer.copyOf(newCapacity)
         }
+    }
+}
+
+class S3Wrapper(private val s3: AmazonS3) {
+
+    fun uploadPart(request: UploadPartRequest): UploadPartResult {
+        return s3.uploadPart(request)
     }
 }
