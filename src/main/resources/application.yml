@@ -2,6 +2,10 @@ flowable:
   process-definition-location-prefix: classpath*:/flowable/**/
   enable-history-cleaning: true
   history-cleaning-after: 1d
+  process:
+    async:
+      executor:
+        async-job-lock-time: PT10M
 
 spring:
   datasource:
