@@ -157,7 +157,7 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
           # Memory config
           env {
             name = "JAVA_TOOL_OPTIONS"
-            value = "-Xmx512M -Dorg.bytedeco.javacpp.maxbytes=1024m -Dorg.bytedeco.javacpp.maxphysicalbytes=1900m"
+            value = "-Xmx768M -Dorg.bytedeco.javacpp.maxbytes=1024m -Dorg.bytedeco.javacpp.maxphysicalbytes=1600m"
           }
 
           resources {
