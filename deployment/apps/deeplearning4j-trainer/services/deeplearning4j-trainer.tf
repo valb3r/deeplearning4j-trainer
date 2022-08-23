@@ -157,7 +157,7 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
           resources {
             requests = {
               cpu    = "2"
-              memory = "2048Mi"
+              memory = "1024Mi"
             }
           }
 
