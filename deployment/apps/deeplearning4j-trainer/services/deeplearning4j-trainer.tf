@@ -157,18 +157,20 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
           # Memory config
           env {
             name = "JAVA_TOOL_OPTIONS"
-            value = "-Xmx768M -Dorg.bytedeco.javacpp.maxbytes=1024m -Dorg.bytedeco.javacpp.maxphysicalbytes=1600m"
+            value = "-Xmx1024M -Dorg.bytedeco.javacpp.maxbytes=1024m -Dorg.bytedeco.javacpp.maxphysicalbytes=1800m"
           }
 
+          // Requests must be equal to limit as the node hogs CPU constantly
+          // If not Hetzner CSI driver may not get enough CPU and node will hang
           resources {
             requests = {
-              cpu    = "1"
+              cpu    = "2.8"
               memory = "1024Mi"
             }
 
             limits = {
-              cpu    = "2.5" // Do not take all node CPU
-              memory = "3000Mi"
+              cpu    = "2.8"
+              memory = "3500Mi"
             }
           }
 

@@ -6,12 +6,13 @@ flowable:
     async:
       executor:
         async-job-lock-time: PT10M
+        max-async-jobs-due-per-acquisition: 1 # Long running jobs may get stuck in queue (we do not want them there)
 
 flowable-executor:
   pool:
     core-pool-size: 1
     max-pool-size: 1
-    queue-capacity: 0 # Long running jobs should not be placed on queue as jobs on queue are affected by `async-job-lock-time`
+    queue-capacity: 1 # Long running jobs should not be placed on queue as jobs on queue are affected by `async-job-lock-time`
 
 spring:
   datasource:
