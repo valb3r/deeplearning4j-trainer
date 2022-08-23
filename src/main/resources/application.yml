@@ -7,6 +7,12 @@ flowable:
       executor:
         async-job-lock-time: PT10M
 
+flowable-executor:
+  pool:
+    core-pool-size: 1
+    max-pool-size: 1
+    queue-capacity: 1
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/deeplearning4j-trainer?currentSchema=deeplearning4j_trainer

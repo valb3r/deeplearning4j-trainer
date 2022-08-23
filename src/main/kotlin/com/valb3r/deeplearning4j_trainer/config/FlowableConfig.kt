@@ -10,10 +10,15 @@ import com.valb3r.deeplearning4j_trainer.config.serde.TrainingSerde
 import com.valb3r.deeplearning4j_trainer.config.serde.ValidationSerde
 import org.flowable.spring.SpringProcessEngineConfiguration
 import org.flowable.spring.boot.EngineConfigurationConfigurer
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.task.AsyncListenableTaskExecutor
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
+import org.springframework.validation.annotation.Validated
+import javax.validation.constraints.Min
+import javax.validation.constraints.NotBlank
 
 
 @Configuration
@@ -49,15 +54,24 @@ class FlowableConfig {
     }
 
     @Bean
-    fun taskExecutor(): AsyncListenableTaskExecutor {
+    fun taskExecutor(poolCfg: FlowableExecutorPoolConfig): AsyncListenableTaskExecutor {
         val executor = ThreadPoolTaskExecutor()
-        executor.corePoolSize = 2
-        executor.maxPoolSize = 2
-        executor.queueCapacity = 100
+        executor.corePoolSize = poolCfg.corePoolSize
+        executor.maxPoolSize = poolCfg.maxPoolSize
+        executor.queueCapacity = poolCfg.queueCapacity
         executor.threadNamePrefix = "flowable-executor"
         executor.setAwaitTerminationSeconds(30)
         executor.setWaitForTasksToCompleteOnShutdown(true)
         executor.initialize()
         return executor
     }
+
+    @Validated
+    @ConstructorBinding
+    @ConfigurationProperties(prefix = "flowable-executor.pool")
+    data class FlowableExecutorPoolConfig(
+        @Min(1) val corePoolSize: Int,
+        @Min(1) val maxPoolSize: Int,
+        @Min(1) val queueCapacity: Int
+    )
 }

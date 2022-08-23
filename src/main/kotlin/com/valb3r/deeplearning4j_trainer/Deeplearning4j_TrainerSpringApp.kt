@@ -1,6 +1,7 @@
 package com.valb3r.deeplearning4j_trainer
 
 import com.valb3r.deeplearning4j_trainer.config.DirectoriesConfig
+import com.valb3r.deeplearning4j_trainer.config.FlowableConfig
 import com.valb3r.deeplearning4j_trainer.config.S3Config
 import com.valb3r.deeplearning4j_trainer.config.UsersConfig
 import org.springframework.boot.SpringApplication
@@ -11,7 +12,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
 
 @EnableJdbcHttpSession
 @EnableTransactionManagement
-@EnableConfigurationProperties(DirectoriesConfig::class, UsersConfig::class, S3Config::class)
+@EnableConfigurationProperties(DirectoriesConfig::class, UsersConfig::class, S3Config::class, FlowableConfig.FlowableExecutorPoolConfig::class)
 @SpringBootApplication(scanBasePackageClasses = [Deeplearning4j_TrainerSpringApp::class])
 class Deeplearning4j_TrainerSpringApp {
 
