@@ -18,8 +18,8 @@ spring:
       ddl-auto: validate
   servlet:
     multipart:
-      max-file-size: 10GB
-      max-request-size: 10GB
+      max-file-size: 100GB
+      max-request-size: 100GB
   flyway:
     baseline-on-migrate: true
   data:
