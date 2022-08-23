@@ -43,6 +43,16 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
       }
     }
 
+    # Downtime strategy
+    strategy {
+      type = "Recreate"
+
+      rolling_update {
+        max_surge = "100%"
+        max_unavailable = "100%"
+      }
+    }
+
     template {
       metadata {
         labels = {
