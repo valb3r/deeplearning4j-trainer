@@ -167,7 +167,7 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
             }
 
             limits = {
-              cpu    = "3"
+              cpu    = "2.5" // Do not take all node CPU
               memory = "2560Mi"
             }
           }
