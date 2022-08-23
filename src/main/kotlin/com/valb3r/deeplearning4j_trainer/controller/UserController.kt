@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
 import java.lang.Thread.sleep
+import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDateTime
 import java.util.concurrent.ThreadLocalRandom
 import javax.validation.Valid
@@ -275,7 +276,7 @@ class UserController(
         val proc = processRepository.findByProcessId(processId)!! as ValidationProcess
         model.addAttribute("processId", processId)
         model.addAttribute("businessKey", readBusinessKey(processId))
-        model.addAttribute("validationResults", proc.validationResult)
+        model.addAttribute("validationResults", proc.validationResult?.let { String(it, UTF_8) })
         return "user/processes/validation-results"
     }
 

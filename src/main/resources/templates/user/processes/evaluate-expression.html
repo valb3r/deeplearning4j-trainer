@@ -34,7 +34,7 @@
             <h3>Evaluate expression(s)</h3>
             <input name="input-expr" id="input-expr"/>
             <button type="button" class="btn btn-secondary" onclick="addExpression(processId, 'expr-list', 'input-expr', 'data-point-idx', 'use-latest')">Add expression</button>
-            <label for="saved-expr">Saved plot configs</label>
+            <label for="saved-expr">Saved expressions</label>
             <input id="saved-expr" name="saved-plots" list="saved-expr-list" onclick="autocompleteSavedExpressions('saved-expr-list')"
                    oninput="savedExpressionsSelected('saved-expr', 'saved-expr-list', processId, 'expr-list', 'data-point-idx', 'use-latest')"
                    style="width: 32em;"/>
