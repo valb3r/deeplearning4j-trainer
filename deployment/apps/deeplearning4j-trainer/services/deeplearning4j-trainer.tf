@@ -154,6 +154,12 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
             value = "USER"
           }
 
+          # Memory config
+          env {
+            name = "JAVA_TOOL_OPTIONS"
+            value = "-Xmx512M -Dorg.bytedeco.javacpp.maxbytes=1G -Dorg.bytedeco.javacpp.maxphysicalbytes=1.5G"
+          }
+
           resources {
             requests = {
               cpu    = "1"
