@@ -35,7 +35,7 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
   }
 
   spec {
-    replicas = 1
+    replicas = 2
 
     selector {
       match_labels = {
