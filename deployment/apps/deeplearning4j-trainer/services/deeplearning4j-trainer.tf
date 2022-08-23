@@ -57,6 +57,8 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
         container {
           image = "ghcr.io/valb3r/deeplearning4j_trainer-trainer:latest"
           name  = "deeplearning4j-trainer"
+          image_pull_policy = "Always"
+
           env {
             name  = "SERVER_PORT"
             value = "8080"
