@@ -25,6 +25,8 @@ spring:
   data:
     rest:
       base-path: /api
+  session:
+    store-type: jdbc
 
 server:
   forward-headers-strategy: framework
