@@ -6,7 +6,6 @@
       <startEvent id="sid-6f5e80b1-f620-4963-8108-82a295476caa"/>
       <endEvent id="sid-f1ca062d-f7cc-4411-ad41-61c736abbe5b"/>
       <serviceTask id="sid-30d67d0b-e75c-40d4-a26a-c0894e5c9347" flowable:exclusive="true" name="Validate process inputs" flowable:delegateExpression="${trainingDataInputValidatorAndLoader}" flowable:async="true"/>
-      <sequenceFlow id="sid-262c5d6e-6e4b-4a90-82d8-9fd1e0286deb" sourceRef="sid-6f5e80b1-f620-4963-8108-82a295476caa" targetRef="sid-30d67d0b-e75c-40d4-a26a-c0894e5c9347"/>
       <exclusiveGateway id="sid-e813b233-34f4-41dc-9700-e0ae951ef75e" default="sid-53706c25-bc8c-4fcf-99f0-154d590928d7"/>
       <sequenceFlow id="sid-772219ed-02af-4d0f-b3e3-25bba9f75006" sourceRef="sid-30d67d0b-e75c-40d4-a26a-c0894e5c9347" targetRef="sid-e813b233-34f4-41dc-9700-e0ae951ef75e"/>
       <serviceTask id="sid-de91c407-9434-4c63-865c-ff9049b4100d" flowable:exclusive="true" name="Generate new model according to specification" flowable:delegateExpression="${newModelGenerator}" flowable:async="true"/>
@@ -32,6 +31,14 @@
         <conditionExpression xsi:type="tFormalExpression"/>
       </sequenceFlow>
       <sequenceFlow id="sid-ed4a67a5-0ee6-4592-b639-0d1b1f31bb3c" sourceRef="sid-88d4c93d-6546-4b93-a808-a8c60c854eec" targetRef="sid-ef64bd7f-32e5-487d-8655-06e18c95a52b"/>
+      <exclusiveGateway id="sid-eefc0990-a015-4e1d-bb17-d7e9d36bf824" default="noContextAvailable"/>
+      <sequenceFlow id="sid-ca2b2545-4c3a-42e8-81db-5c82b0149e9c" sourceRef="sid-6f5e80b1-f620-4963-8108-82a295476caa" targetRef="sid-eefc0990-a015-4e1d-bb17-d7e9d36bf824"/>
+      <sequenceFlow id="noContextAvailable" sourceRef="sid-eefc0990-a015-4e1d-bb17-d7e9d36bf824" targetRef="sid-30d67d0b-e75c-40d4-a26a-c0894e5c9347" name="No context available">
+        <conditionExpression xsi:type="tFormalExpression"/>
+      </sequenceFlow>
+      <sequenceFlow id="contextAvailable" sourceRef="sid-eefc0990-a015-4e1d-bb17-d7e9d36bf824" targetRef="sid-88d4c93d-6546-4b93-a808-a8c60c854eec" name="Context available">
+        <conditionExpression xsi:type="tFormalExpression">${trainingConditionEvaluator.hasContext(execution)}</conditionExpression>
+      </sequenceFlow>
     </subProcess>
     <startEvent id="sid-700c53b9-5716-44fc-8452-dfbe071b4649"/>
     <sequenceFlow id="sid-35ce404e-ce34-4e81-b6a7-abf67568ea40" sourceRef="sid-700c53b9-5716-44fc-8452-dfbe071b4649" targetRef="sid-d80198a3-1cb3-429d-93bd-e0af9cac6fc1"/>
@@ -55,7 +62,7 @@
   <bpmndi:BPMNDiagram id="BPMNDiagram_model-training-process">
     <bpmndi:BPMNPlane bpmnElement="model-training-process" id="BPMNPlane_model-training-process">
       <bpmndi:BPMNShape id="shape-8a6c3228-fedd-4ad4-aba5-ef57edc974da" bpmnElement="sid-6f5e80b1-f620-4963-8108-82a295476caa">
-        <omgdc:Bounds x="-495.0" y="-355.0" width="30.0" height="30.0"/>
+        <omgdc:Bounds x="-545.0" y="-355.0" width="30.0" height="30.0"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-d054ab03-ae0c-487f-a739-2135baada1a6" bpmnElement="sid-f1ca062d-f7cc-4411-ad41-61c736abbe5b">
         <omgdc:Bounds x="320.0" y="-180.0" width="30.0" height="30.0"/>
@@ -63,10 +70,6 @@
       <bpmndi:BPMNShape id="shape-60a40d45-16cb-440b-bb51-57b4b2015efe" bpmnElement="sid-30d67d0b-e75c-40d4-a26a-c0894e5c9347">
         <omgdc:Bounds x="-400.0" y="-380.0" width="100.0" height="80.0"/>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="edge-6e6f94ea-d52d-4718-9507-add382c386f7" bpmnElement="sid-262c5d6e-6e4b-4a90-82d8-9fd1e0286deb">
-        <omgdi:waypoint x="-465.0" y="-340.0"/>
-        <omgdi:waypoint x="-400.0" y="-340.0"/>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="shape-05d7dca5-baab-44dc-b7b2-a676357fad98" bpmnElement="sid-e813b233-34f4-41dc-9700-e0ae951ef75e">
         <omgdc:Bounds x="-245.0" y="-360.0" width="40.0" height="40.0"/>
       </bpmndi:BPMNShape>
@@ -184,6 +187,23 @@
         <omgdi:waypoint x="-64.51504" y="-91.94071"/>
         <omgdi:waypoint x="-64.51504" y="104.99999"/>
         <omgdi:waypoint x="-13.75" y="104.99999"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="shape-ef177fd3-fd03-4c7d-a5cd-c87e09e93df0" bpmnElement="sid-eefc0990-a015-4e1d-bb17-d7e9d36bf824">
+        <omgdc:Bounds x="-480.0" y="-360.0" width="40.0" height="40.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="edge-c2eb91ea-b120-4710-ab9f-91a3fa8dd468" bpmnElement="sid-ca2b2545-4c3a-42e8-81db-5c82b0149e9c">
+        <omgdi:waypoint x="-515.0" y="-340.0"/>
+        <omgdi:waypoint x="-480.0" y="-340.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="edge-7307cb89-c3b2-4f17-8b53-650ddac7c779" bpmnElement="noContextAvailable">
+        <omgdi:waypoint x="-440.0" y="-340.0"/>
+        <omgdi:waypoint x="-400.0" y="-340.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="edge-cf7a58e2-5cb1-4379-9efc-d72bb12d82ec" bpmnElement="contextAvailable">
+        <omgdi:waypoint x="-460.0" y="-320.0"/>
+        <omgdi:waypoint x="-460.0" y="-165.0"/>
+        <omgdi:waypoint x="75.000015" y="-165.0"/>
+        <omgdi:waypoint x="75.000015" y="-295.0"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

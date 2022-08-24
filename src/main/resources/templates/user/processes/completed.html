@@ -60,6 +60,10 @@
                 <a th:href="@{/user/processes/{id}/notes.html(id=${i.processId})}" th:text="'Note ' + ${#strings.abbreviate(i.notes, 30) ?: ''}"></a>
             </td>
             <td>
+                <form action="#" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="btn btn-secondary" name="resume-new" th:formaction="@{/user/processes/{id}/continue-process-in-new(id=${i.processId})}">Resume as new</button>
+                </form>
                 <a th:if="${isTraining}" th:href="@{/user/processes/{id}/start-inherited-dataset-training(id=${i.processId})}">
                     <button type="button" class="btn btn-secondary">Train other</button>
                 </a>

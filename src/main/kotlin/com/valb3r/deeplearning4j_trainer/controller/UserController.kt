@@ -173,6 +173,27 @@ class UserController(
         return "redirect:/"
     }
 
+    @Transactional
+    @PostMapping("user/processes/{trainingProcessId}/continue-process-in-new")
+    fun continueProcessInNewProcess(
+        @PathVariable trainingProcessId: String
+    ): String {
+        val proc = processRepository.findByProcessId(trainingProcessId)!!
+        val definition = repositoryService.createProcessDefinitionQuery().processDefinitionId(proc.processDefinitionName).singleResult()
+            ?: return "redirect:/user/processes/new-process.html?error=missing-process-def"
+
+        val continuation = runtime.startProcessInstanceById(
+            definition.id,
+            proc.businessKey,
+            mapOf(CONTEXT to proc.getCtx())
+        )
+        // Might cause issue if continuation process tries to find proc entity before it is saved here, Transactional should help
+        proc.processId = continuation.id
+        processRepository.save(proc)
+
+        return "redirect:/"
+    }
+
     @GetMapping("user/processes/{trainingProcessId}/start-inherited-dataset-training")
     fun startNewTrainingWithInheritedDatasetView(@PathVariable trainingProcessId: String, model: Model): String {
         val proc = trainingProcessRepository.findByProcessId(trainingProcessId)!!
