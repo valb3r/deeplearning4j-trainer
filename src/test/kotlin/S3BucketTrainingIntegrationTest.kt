@@ -90,7 +90,7 @@ class S3BucketTrainingIntegrationTest {
     @ParameterizedTest
     fun testModelUploadAndTrainingWorks(filesDir: String) {
         val res = PathMatchingResourcePatternResolver().getResources(filesDir)
-        mockMvc.perform(newProcess(*res).param("business-key", "test1"))
+        mockMvc.perform(newProcess(processDefinitionId, "test1", *res))
             .andExpect(status().is3xxRedirection)
             .andExpect(redirectedUrl("/"))
 
@@ -101,14 +101,6 @@ class S3BucketTrainingIntegrationTest {
         proc.errorMessage.shouldBeNull()
         proc.getCtx()!!.currentEpoch.shouldBe(1)
         proc.bestLoss!!.shouldBeGreaterThan(-1.0)
-    }
-
-    private fun newProcess(vararg files: Resource): MockHttpServletRequestBuilder {
-        val upload = multipart("/user/processes/definitions/${processDefinitionId}/start")
-        files.forEach {
-            upload.file(MockMultipartFile("inputs", it.file.name, null, it.inputStream))
-        }
-        return upload.characterEncoding(UTF_8).with(csrf())
     }
 }
 

@@ -14,6 +14,7 @@ import org.flowable.engine.RepositoryService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.mapdb.DB.Keys.type
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -22,6 +23,7 @@ import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.io.Resource
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
+import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -35,6 +37,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirec
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import org.testcontainers.shaded.org.bouncycastle.asn1.cms.CMSAttributes.contentType
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.time.Duration
@@ -78,7 +81,7 @@ class FileSystemTrainingIntegrationTest {
     @ParameterizedTest
     fun testModelUploadAndTrainingWorks(filesDir: String) {
         val res = PathMatchingResourcePatternResolver().getResources(filesDir)
-        mockMvc.perform(newProcess(*res).param("business-key", "test1"))
+        mockMvc.perform(newProcess(processDefinitionId, "test1", *res))
             .andExpect(status().is3xxRedirection)
             .andExpect(redirectedUrl("/"))
 
@@ -103,7 +106,7 @@ class FileSystemTrainingIntegrationTest {
     @ParameterizedTest
     fun testFaultyCases(filesDir: String, expectedError: String) {
         val res = PathMatchingResourcePatternResolver().getResources(filesDir)
-        mockMvc.perform(newProcess(*res).param("business-key", "test1"))
+        mockMvc.perform(newProcess(processDefinitionId, "test1", *res))
             .andExpect(status().is3xxRedirection)
             .andExpect(redirectedUrl("/"))
 
@@ -113,14 +116,6 @@ class FileSystemTrainingIntegrationTest {
         proc.completed.shouldBeTrue()
         proc.errorMessage.shouldStartWith(expectedError)
         proc.bestLoss?.shouldBeNull()
-    }
-
-    private fun newProcess(vararg files: Resource): MockHttpServletRequestBuilder {
-        val upload = multipart("/user/processes/definitions/${processDefinitionId}/start")
-        files.forEach {
-            upload.file(MockMultipartFile("inputs", it.file.name, null, it.inputStream))
-        }
-        return upload.characterEncoding(UTF_8).with(csrf())
     }
 }
 
