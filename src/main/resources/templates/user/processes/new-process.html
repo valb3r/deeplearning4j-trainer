@@ -32,7 +32,6 @@
         <tbody>
         <tr th:each="i : ${definitions}">
             <form action="#" method="post" enctype="multipart/form-data">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <td th:text="${i.getId()}"></td>
                 <td th:text="${i.getName()}"></td>
                 <td th:text="${i.getResourceName()}"></td>
@@ -41,7 +40,7 @@
                     <input type="file" name="inputs" multiple/>
                 </td>
                 <td>
-                    <button type="submit" class="btn btn-primary" name="start" th:formaction="@{/user/processes/definitions/{id}/start(id=${i.id})}">Start</button>
+                    <button type="submit" class="btn btn-primary" name="start" th:formaction="@{/user/processes/definitions/{id}/start?{csrf}={csrfVal}(id=${i.id},csrf=${_csrf.parameterName},csrfVal=${_csrf.token})}">Start</button>
                 </td>
             </form>
         </tr>

@@ -18,8 +18,10 @@ import com.valb3r.deeplearning4j_trainer.service.MermaidSchemaExtractor
 import com.valb3r.deeplearning4j_trainer.service.poisonPill
 import com.valb3r.deeplearning4j_trainer.storage.StorageService
 import com.valb3r.deeplearning4j_trainer.storage.resolve
-import liquibase.pro.packaged.aa
 import org.apache.commons.io.IOUtils
+import org.apache.tomcat.util.http.fileupload.FileItemIterator
+import org.apache.tomcat.util.http.fileupload.FileItemStream
+import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload
 import org.flowable.engine.RepositoryService
 import org.flowable.engine.RuntimeService
 import org.springframework.core.io.InputStreamResource
@@ -31,18 +33,16 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.ui.Model
-import org.springframework.util.FileSystemUtils
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.multipart.MultipartFile
 import java.io.File
 import java.lang.Thread.sleep
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDateTime
 import java.util.concurrent.ThreadLocalRandom
+import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 import javax.validation.constraints.NotBlank
-import javax.validation.constraints.NotEmpty
 import kotlin.math.min
 
 
@@ -108,11 +108,7 @@ class UserController(
     }
 
     @PostMapping("user/processes/definitions/{id}/start")
-    fun startNewProcess(
-        @PathVariable id: String,
-        @Valid @NotBlank @RequestParam("business-key") businessKey: String,
-        @Valid @NotEmpty @RequestParam("inputs") files: Array<MultipartFile>
-    ): String {
+    fun startNewProcess(@PathVariable id: String, request: HttpServletRequest): String {
         val definition = repositoryService.createProcessDefinitionQuery().processDefinitionId(id).singleResult()
             ?: return "redirect:/user/processes/new-process.html?error=missing-process-def"
 
@@ -120,13 +116,8 @@ class UserController(
         val inputDir = directoriesConfig.input.resolve(name)
         val outputDir = directoriesConfig.output.resolve(name)
 
-        if (files.any { it.originalFilename?.isBlank() != false }) {
-            throw IllegalArgumentException("Empty filename")
-        }
+        val businessKey = processUploadedFilesAndSendThemToStorage(request, inputDir)
 
-        files.forEach {
-            storage.write(inputDir.resolve(it.originalFilename!!)).use { os -> it.inputStream.use {inp -> IOUtils.copy(inp, os) }}
-        }
         runtime.startProcessInstanceById(
             definition.id,
             businessKey,
@@ -146,11 +137,10 @@ class UserController(
     @PostMapping("user/processes/{trainingProcessId}/start-validation")
     fun startNewTrainingValidationProcess(
         @PathVariable trainingProcessId: String,
-        @Valid @NotBlank @RequestParam("business-key") businessKey: String,
         @Valid @RequestParam("use-training-data", defaultValue = "false") useTrainingData: Boolean,
-        @Valid @NotEmpty @RequestParam("inputs") files: Array<MultipartFile>
+        request: HttpServletRequest
     ): String {
-        val definition = repositoryService.createProcessDefinitionQuery().processDefinitionName("model-validation-process").singleResult()
+        val definition = repositoryService.createProcessDefinitionQuery().processDefinitionName("model-validation-process").latestVersion().singleResult()
             ?: return "redirect:/user/processes/new-process.html?error=missing-process-def"
         val ctx = trainingProcessRepository.findByProcessId(trainingProcessId)!!.getCtx()!!
 
@@ -158,13 +148,8 @@ class UserController(
         val inputDir = directoriesConfig.input.resolve(name)
         val outputDir = directoriesConfig.output.resolve(name)
 
-        if (files.any { it.originalFilename?.isBlank() != false }) {
-            throw IllegalArgumentException("Empty filename")
-        }
+        val businessKey = processUploadedFilesAndSendThemToStorage(request, inputDir)
 
-        files.forEach {
-            storage.write(inputDir.resolve(it.originalFilename!!)).use { os -> it.inputStream.use {inp -> IOUtils.copy(inp, os) }}
-        }
         runtime.startProcessInstanceById(
             definition.id,
             businessKey,
@@ -179,7 +164,7 @@ class UserController(
         @PathVariable trainingProcessId: String
     ): String {
         val proc = processRepository.findByProcessId(trainingProcessId)!!
-        val definition = repositoryService.createProcessDefinitionQuery().processDefinitionId(proc.processDefinitionName).singleResult()
+        val definition = repositoryService.createProcessDefinitionQuery().processDefinitionId(proc.processDefinitionName).latestVersion().singleResult()
             ?: return "redirect:/user/processes/new-process.html?error=missing-process-def"
 
         val continuation = runtime.startProcessInstanceById(
@@ -205,11 +190,10 @@ class UserController(
     @PostMapping("user/processes/{trainingProcessId}/start-inherited-dataset-training")
     fun startNewTrainingWithInheritedDatasetProcess(
         @PathVariable trainingProcessId: String,
-        @Valid @NotBlank @RequestParam("business-key") businessKey: String,
         @Valid @RequestParam("use-training-data", defaultValue = "false") useTrainingData: Boolean,
-        @Valid @NotEmpty @RequestParam("inputs") files: Array<MultipartFile>
+        request: HttpServletRequest
     ): String {
-        val definition = repositoryService.createProcessDefinitionQuery().processDefinitionName("model-training-process").singleResult()
+        val definition = repositoryService.createProcessDefinitionQuery().processDefinitionName("model-training-process").latestVersion().singleResult()
             ?: return "redirect:/user/processes/new-process.html?error=missing-process-def"
         val ctx = trainingProcessRepository.findByProcessId(trainingProcessId)!!.getCtx()!!
 
@@ -217,13 +201,8 @@ class UserController(
         val inputDir = directoriesConfig.input.resolve(name)
         val outputDir = directoriesConfig.output.resolve(name)
 
-        if (files.any { it.originalFilename?.isBlank() != false }) {
-            throw IllegalArgumentException("Empty filename")
-        }
+        val businessKey = processUploadedFilesAndSendThemToStorage(request, inputDir)
 
-        files.forEach {
-            storage.write(inputDir.resolve(it.originalFilename!!)).use { os -> it.inputStream.use {inp -> IOUtils.copy(inp, os) }}
-        }
         runtime.startProcessInstanceById(
             definition.id,
             businessKey,
@@ -421,6 +400,32 @@ class UserController(
             .header("Content-Disposition", "inline; filename=model-spec-${readBusinessKey(processId)}-$processId.fb")
             .contentType(MediaType.TEXT_PLAIN)
             .body(InputStreamResource(result.byteInputStream()))
+    }
+
+
+    // Very special implementation to send file directly to i.e. S3 and not to temp directory first and copy after (Spring default behaviour)
+    private fun processUploadedFilesAndSendThemToStorage(request: HttpServletRequest, inputDir: String): String {
+        val upload = ServletFileUpload()
+        val iterator: FileItemIterator = upload.getItemIterator(request)
+        var businessKeyExtract: String? = null
+        while (iterator.hasNext()) {
+            val item: FileItemStream = iterator.next()
+            if (!item.isFormField && "inputs" == item.fieldName) {
+                if (item.name.isBlank()) {
+                    throw IllegalArgumentException("Empty filename")
+                }
+                // Must be done while iterating, otherwise stream will be closed
+                storage.write(inputDir.resolve(item.name!!))
+                    .use { os -> item.openStream().use { inp -> IOUtils.copy(inp, os) } }
+            } else {
+                if (item.fieldName == "business-key") {
+                    businessKeyExtract = item.openStream().use { String(it.readBytes()) }
+                }
+            }
+        }
+
+        val businessKey = businessKeyExtract!!
+        return businessKey
     }
 
     private fun readBusinessKey(processId: String): String {

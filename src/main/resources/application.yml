@@ -29,8 +29,7 @@ spring:
       ddl-auto: validate
   servlet:
     multipart:
-      max-file-size: 100GB
-      max-request-size: 100GB
+      enabled: false # Do not use Spring Multipart mechanism in order to store uploads directly to S3 (otherwise they will be stored in a temp file of disk)
   flyway:
     baseline-on-migrate: true
   data:

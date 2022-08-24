@@ -31,7 +31,6 @@
         <tbody>
         <tr>
             <form action="#" method="post" enctype="multipart/form-data">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <td th:text="${id}"></td>
                 <td th:text="${businessKey}"></td>
                 <td><input type="text" id="business-key" name="business-key" th:value="|INHERITED-${businessKey}|" required/></td>
@@ -39,7 +38,7 @@
                     <input type="file" name="inputs" multiple/>
                 </td>
                 <td>
-                    <button type="submit" class="btn btn-primary" name="startTraining" th:formaction="@{/user/processes/{id}/start-inherited-dataset-training(id=${id})}">Start training</button>
+                    <button type="submit" class="btn btn-primary" name="start" th:formaction="@{/user/processes/{id}/start-inherited-dataset-training?{csrf}={csrfVal}(id=${id},csrf=${_csrf.parameterName},csrfVal=${_csrf.token})}">Start training</button>
                 </td>
             </form>
         </tr>

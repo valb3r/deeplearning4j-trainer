@@ -31,7 +31,6 @@
         <tbody>
         <tr>
             <form action="#" method="post" enctype="multipart/form-data">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <td th:text="${id}"></td>
                 <td th:text="${businessKey}"></td>
                 <td><input type="text" id="business-key" name="business-key" th:value="|VALIDATION-${businessKey}|" required/></td>
@@ -39,8 +38,8 @@
                     <input type="file" name="inputs" multiple/>
                 </td>
                 <td>
-                    <button type="submit" class="btn btn-primary" name="startFull" th:formaction="@{/user/processes/{id}/start-validation(id=${id})}">Start validation</button>
-                    <button type="submit" class="btn btn-secondary" name="startTraining" th:formaction="@{/user/processes/{id}/start-validation?use-training-data=true(id=${id})}">Validation using same training data</button>
+                    <button type="submit" class="btn btn-primary" name="start" th:formaction="@{/user/processes/{id}/start-validation?{csrf}={csrfVal}(id=${id},csrf=${_csrf.parameterName},csrfVal=${_csrf.token})}">Start validation</button>
+                    <button type="submit" class="btn btn-secondary" name="startWithSame" th:formaction="@{/user/processes/{id}/start-validation?use-training-data=true?{csrf}={csrfVal}(id=${id},csrf=${_csrf.parameterName},csrfVal=${_csrf.token})}">Validation using same training data</button>
                 </td>
             </form>
         </tr>
