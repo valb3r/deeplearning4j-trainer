@@ -12,7 +12,6 @@ flowable-executor:
   pool:
     core-pool-size: 1
     max-pool-size: 1
-    queue-capacity: 1 # Long running jobs should not be placed on queue as jobs on queue are affected by `async-job-lock-time`
 
 spring:
   datasource:
