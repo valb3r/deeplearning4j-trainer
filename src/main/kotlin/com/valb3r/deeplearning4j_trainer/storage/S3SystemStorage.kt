@@ -62,6 +62,7 @@ class S3SystemStorage(private val conf: S3Config): StorageSystem {
             path.bucket(),
             path.objKey(),
             path.asS3(),
+            conf.maxChunkSize,
             executorService
         )
     }

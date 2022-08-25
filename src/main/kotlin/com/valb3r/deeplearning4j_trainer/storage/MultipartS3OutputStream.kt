@@ -2,6 +2,7 @@ package com.valb3r.deeplearning4j_trainer.storage
 
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.*
+import org.springframework.util.unit.DataSize
 import java.io.ByteArrayInputStream
 import java.io.OutputStream
 import java.util.concurrent.CompletionService
@@ -11,22 +12,23 @@ import java.util.concurrent.ExecutorService
 import kotlin.math.min
 
 // Amazon S3 has maximum chunks of up to 5GB, max chunk count is 10_000
-const val BUFFER_SIZE = 1024 * 1024 * 20 // max upload size is 200Gb in 20Mb chunks
-
 class MultipartS3OutputStream(
     private val bucketName: String,
     private val objectName: String,
     private val amazonS3: AmazonS3,
+    bufferSize: DataSize,
     executorService: ExecutorService
 ) : OutputStream() {
 
     private val MAX_CHUNKS = 10_000 + 1
+    private val BUFFER_SIZE = bufferSize.toBytes().toInt()
 
     private val s3Wrapper = S3Wrapper(amazonS3)
     private val completionService: CompletionService<UploadPartResult>
     private var currentOutputStream: CustomizableByteArrayOutputStream? = newOutputStream()
     private var multiPartUploadResult: InitiateMultipartUploadResult? = null
     private var partCounter = 1
+    private var bytesWritten = 0L
 
     init {
         completionService = ExecutorCompletionService(executorService)
@@ -44,12 +46,14 @@ class MultipartS3OutputStream(
             remainingSizeToWrite -= bytesToWrite
             initiateMultipartRequestAndCommitPartIfNeeded()
         } while (remainingSizeToWrite > 0)
+        bytesWritten += len
     }
 
     @Synchronized
     override fun write(b: Int) {
         currentOutputStream!!.write(b)
         initiateMultipartRequestAndCommitPartIfNeeded()
+        bytesWritten += 1
     }
 
     @Synchronized
@@ -70,7 +74,7 @@ class MultipartS3OutputStream(
         }
 
         if (partCounter == MAX_CHUNKS) {
-            throw IllegalArgumentException("Upload is too large")
+            throw IllegalArgumentException("Upload is too large - chunk size ${BUFFER_SIZE}b, written $bytesWritten, part $partCounter")
         }
 
         initiateMultiPartIfNeeded()
