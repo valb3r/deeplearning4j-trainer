@@ -68,6 +68,8 @@ class ValidationDataInputValidatorAndLoader(
         validationProc.trainedModelPath = ctx.trainedModelPath
         validationProc.bestPerformingTrainedModelPath = ctx.trainedModelPath
         validationProc.setCtx(ctx)
+        validationProc.completed = false
+        validationProc.businessKey = execution.processInstanceBusinessKey
         validationRepo.save(validationProc)
     }
 

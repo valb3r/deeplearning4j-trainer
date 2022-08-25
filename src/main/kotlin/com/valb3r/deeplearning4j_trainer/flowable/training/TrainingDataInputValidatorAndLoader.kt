@@ -105,6 +105,8 @@ class TrainingDataInputValidatorAndLoader(
         execution.setContext(trainingCtx)
         trainingProc.trainedModelPath = trainingCtx.trainedModelPath
         trainingProc.setCtx(trainingCtx)
+        trainingProc.completed = false
+        trainingProc.businessKey = execution.processInstanceBusinessKey
         trainingRepo.save(trainingProc)
     }
 
