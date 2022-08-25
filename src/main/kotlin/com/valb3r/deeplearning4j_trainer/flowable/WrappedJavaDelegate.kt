@@ -14,8 +14,12 @@ abstract class WrappedJavaDelegate: JavaDelegate {
     @Autowired var processRepository: ProcessRepository? = null
 
     override fun execute(execution: DelegateExecution) {
+        val name = Thread.currentThread().name
         try {
+            Thread.currentThread().name = execution.procName()
+            logger.info { "Executing step ${this.javaClass.simpleName}" }
             doExecute(execution)
+            logger.info { "Done executing step ${this.javaClass.simpleName}" }
         } catch (ex: BpmnError) {
             logger.error(ex) { "Execution failed" }
             completeWithError(execution, ex)
@@ -24,7 +28,18 @@ abstract class WrappedJavaDelegate: JavaDelegate {
             logger.error(ex) { "Execution failed" }
             completeWithError(execution, ex)
             throw BpmnError("INPUT_ERR")
+        } finally {
+            Thread.currentThread().name = name
         }
+        logger.info { "Wrapper done" }
+    }
+
+    fun DelegateExecution.procName(): String {
+        if (null != processInstanceBusinessKey) {
+            return "$id - $processInstanceBusinessKey"
+        }
+
+        return id
     }
 
     private fun completeWithError(execution: DelegateExecution, ex: Throwable) {
@@ -36,6 +51,7 @@ abstract class WrappedJavaDelegate: JavaDelegate {
             processRepository!!.save(procInstance)
         } catch (ex: Throwable) {
             // NOP
+            logger.error(ex) { "Failed ${ex.message}" }
         }
     }
 

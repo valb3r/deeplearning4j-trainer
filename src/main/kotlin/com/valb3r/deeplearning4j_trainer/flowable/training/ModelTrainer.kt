@@ -41,6 +41,7 @@ class ModelTrainer(private val trainingRepo: TrainingProcessRepository, private 
         ) }
         val process = trainingRepo.findByProcessId(execution.processInstanceId)!!
         process.setCtx(ctx)
+        process.completed = false
         process.updatePerformance(sd, lossListener.loss, lossListener.epoch, storage)
         trainingRepo.save(process)
     }

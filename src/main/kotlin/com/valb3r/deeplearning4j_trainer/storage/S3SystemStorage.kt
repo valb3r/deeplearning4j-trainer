@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.iterable.S3Objects
 import com.google.common.cache.CacheBuilder
 import com.valb3r.deeplearning4j_trainer.config.S3Config
+import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import java.io.InputStream
 import java.io.OutputStream
@@ -19,6 +20,8 @@ import java.util.stream.Collectors
 import java.util.stream.StreamSupport
 
 private const val S3_PROTO = "s3://"
+
+private val logger = KotlinLogging.logger {}
 
 @Service
 class S3SystemStorage(private val conf: S3Config): StorageSystem {
@@ -54,6 +57,7 @@ class S3SystemStorage(private val conf: S3Config): StorageSystem {
     }
 
     override fun write(path: String): OutputStream {
+        logger.info { "Write to $path" }
         return MultipartS3OutputStream(
             path.bucket(),
             path.objKey(),
@@ -67,6 +71,7 @@ class S3SystemStorage(private val conf: S3Config): StorageSystem {
     }
 
     override fun remove(path: String): Boolean {
+        logger.info { "Remove from $path" }
         path.asS3().deleteObject(path.bucket(), path.objKey())
         return true
     }
