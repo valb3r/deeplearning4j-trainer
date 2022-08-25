@@ -2,12 +2,11 @@ package com.valb3r.deeplearning4j_trainer.domain
 
 import com.valb3r.deeplearning4j_trainer.flowable.dto.Context
 import com.valb3r.deeplearning4j_trainer.flowable.dto.InputContext
-import com.valb3r.deeplearning4j_trainer.flowable.dto.ValidationContext
-import org.hibernate.annotations.Type
 import org.hibernate.annotations.UpdateTimestamp
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import javax.persistence.*
+import javax.persistence.Transient
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -47,10 +46,12 @@ abstract class Process<out T : Context>  {
 
     abstract fun getCtx(): T?
 
-    fun getInputCtx(): InputContext? {
-        return domainCtxMapper.readValue(inputCtx, InputContext::class.java)
+    @Transient
+    fun inputCtx(): InputContext? {
+        return inputCtx?.let { domainCtxMapper.readValue(it, InputContext::class.java) }
     }
 
+    @Transient
     fun modelPath(latest: Boolean): String {
         if (latest) {
             return trainedModelPath
@@ -59,6 +60,7 @@ abstract class Process<out T : Context>  {
         return bestPerformingTrainedModelPath!!
     }
 
+    @Transient
     fun getRevertedStacktrace(): String? {
         return errorStacktrace?.let { String(it, StandardCharsets.UTF_8) }?.lines()?.reversed()?.joinToString("\n")
     }

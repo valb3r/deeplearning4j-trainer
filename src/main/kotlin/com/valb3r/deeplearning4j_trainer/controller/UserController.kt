@@ -22,6 +22,7 @@ import org.apache.commons.io.IOUtils
 import org.apache.tomcat.util.http.fileupload.FileItemIterator
 import org.apache.tomcat.util.http.fileupload.FileItemStream
 import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload
+import org.flowable.engine.HistoryService
 import org.flowable.engine.RepositoryService
 import org.flowable.engine.RuntimeService
 import org.springframework.core.io.InputStreamResource
@@ -57,6 +58,7 @@ class UserController(
     private val trainingProcessRepository: TrainingProcessRepository,
     private val processRepository: ProcessRepository,
     private val runtime: RuntimeService,
+    private val history: HistoryService,
     private val directoriesConfig: DirectoriesConfig,
     private val mermaidExtractor: MermaidSchemaExtractor,
     private val storage: StorageService
@@ -166,14 +168,14 @@ class UserController(
         val proc = processRepository.findByProcessId(trainingProcessId)!!
         val definition = repositoryService.createProcessDefinitionQuery().processDefinitionId(proc.processDefinitionName).latestVersion().singleResult()
             ?: return "redirect:/user/processes/new-process.html?error=missing-process-def"
+        val inputValue = history.createHistoricVariableInstanceQuery().processInstanceId(trainingProcessId).variableName(INPUT).singleResult()
 
-        val exec = runtime.getVariable(trainingProcessId, INPUT) as InputContext?
         val values = mutableMapOf<String, Any?>(CONTEXT to proc.getCtx())
-        if (null != exec) {
-            values[INPUT] = exec
+        if (null != inputValue) {
+            values[INPUT] = inputValue.value
         }
-        if (null != proc.getInputCtx()) {
-            values[INPUT] = proc.getInputCtx()
+        if (null != proc.inputCtx()) {
+            values[INPUT] = proc.inputCtx()
         }
 
         val continuation = runtime.startProcessInstanceById(
