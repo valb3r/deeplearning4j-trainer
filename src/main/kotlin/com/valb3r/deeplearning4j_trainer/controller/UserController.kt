@@ -166,7 +166,7 @@ class UserController(
         @PathVariable trainingProcessId: String
     ): String {
         val proc = processRepository.findByProcessId(trainingProcessId)!!
-        val definition = repositoryService.createProcessDefinitionQuery().processDefinitionId(proc.processDefinitionName).latestVersion().singleResult()
+        val definition = repositoryService.createProcessDefinitionQuery().processDefinitionId(proc.processDefinitionName).orderByProcessDefinitionVersion().desc().list().firstOrNull()
             ?: return "redirect:/user/processes/new-process.html?error=missing-process-def"
         val inputValue = history.createHistoricVariableInstanceQuery().processInstanceId(trainingProcessId).variableName(INPUT).singleResult()
 
