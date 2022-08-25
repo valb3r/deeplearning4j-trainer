@@ -19,7 +19,7 @@ fun extractZipFilesAndDeleteArch(inputFolder: String, storage: Storage) {
                     throw IllegalArgumentException("Directories are not allowed in ZIP files, found ${zipEntry.name} in $zipFile")
                 }
 
-                val buffer = ByteArray(1024)
+                val buffer = ByteArray(1024_00)
                 storage.write(inputFolder.resolve(zipEntry.name)).use { fos ->
                     while (true) {
                         val len = zis.read(buffer)

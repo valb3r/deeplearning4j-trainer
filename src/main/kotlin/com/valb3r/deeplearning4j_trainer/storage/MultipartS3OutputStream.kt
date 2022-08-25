@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutorService
 import kotlin.math.min
 
 // Amazon S3 has maximum chunks of up to 5GB, max chunk count is 10_000
-const val BUFFER_SIZE = 1024 * 1024 * 10 // max upload size is 100Gb in 10Mb chunks
+const val BUFFER_SIZE = 1024 * 1024 * 20 // max upload size is 200Gb in 20Mb chunks
 
 class MultipartS3OutputStream(
     private val bucketName: String,
@@ -19,6 +19,8 @@ class MultipartS3OutputStream(
     private val amazonS3: AmazonS3,
     executorService: ExecutorService
 ) : OutputStream() {
+
+    private val MAX_CHUNKS = 10_000 + 1
 
     private val s3Wrapper = S3Wrapper(amazonS3)
     private val completionService: CompletionService<UploadPartResult>
@@ -65,6 +67,10 @@ class MultipartS3OutputStream(
     private fun initiateMultipartRequestAndCommitPartIfNeeded() {
         if (currentOutputStream!!.size() != BUFFER_SIZE) {
             return
+        }
+
+        if (partCounter == MAX_CHUNKS) {
+            throw IllegalArgumentException("Upload is too large")
         }
 
         initiateMultiPartIfNeeded()
