@@ -1,6 +1,8 @@
 package com.valb3r.deeplearning4j_trainer.domain
 
 import com.valb3r.deeplearning4j_trainer.flowable.dto.Context
+import com.valb3r.deeplearning4j_trainer.flowable.dto.InputContext
+import com.valb3r.deeplearning4j_trainer.flowable.dto.ValidationContext
 import org.hibernate.annotations.Type
 import org.hibernate.annotations.UpdateTimestamp
 import java.nio.charset.StandardCharsets
@@ -40,7 +42,14 @@ abstract class Process<out T : Context>  {
     @OneToOne(mappedBy = "process", cascade = [CascadeType.ALL])
     open var dataset: Dataset? = null
 
+    @Lob
+    open var inputCtx: ByteArray? = null
+
     abstract fun getCtx(): T?
+
+    fun getInputCtx(): InputContext? {
+        return domainCtxMapper.readValue(inputCtx, InputContext::class.java)
+    }
 
     fun modelPath(latest: Boolean): String {
         if (latest) {

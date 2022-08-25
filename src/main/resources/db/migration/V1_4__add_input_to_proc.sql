@@ -1,0 +1,1 @@
+ALTER TABLE process ADD COLUMN input_ctx BYTEA;

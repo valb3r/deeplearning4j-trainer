@@ -167,10 +167,19 @@ class UserController(
         val definition = repositoryService.createProcessDefinitionQuery().processDefinitionId(proc.processDefinitionName).latestVersion().singleResult()
             ?: return "redirect:/user/processes/new-process.html?error=missing-process-def"
 
+        val exec = runtime.getVariable(trainingProcessId, INPUT) as InputContext?
+        val values = mutableMapOf<String, Any?>(CONTEXT to proc.getCtx())
+        if (null != exec) {
+            values[INPUT] = exec
+        }
+        if (null != proc.getInputCtx()) {
+            values[INPUT] = proc.getInputCtx()
+        }
+
         val continuation = runtime.startProcessInstanceById(
             definition.id,
             proc.businessKey,
-            mapOf(CONTEXT to proc.getCtx())
+            values
         )
         // Might cause issue if continuation process tries to find proc entity before it is saved here, Transactional should help
         proc.processId = continuation.id
