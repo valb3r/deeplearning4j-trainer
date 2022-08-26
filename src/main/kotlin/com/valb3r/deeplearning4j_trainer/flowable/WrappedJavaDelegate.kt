@@ -31,7 +31,7 @@ abstract class WrappedJavaDelegate: JavaDelegate {
         try {
             Thread.currentThread().name = execution.procName()
             activeExecutionsForHeartbeat.add(execution.id)
-            logger.info { "Executing step ${this.javaClass.simpleName}" }
+            logger.info { "Executing step ${this.javaClass.simpleName} of ${execution.processInstanceId}" }
             doExecute(execution)
             logger.info { "Done executing step ${this.javaClass.simpleName}" }
         } catch (ex: BpmnError) {
