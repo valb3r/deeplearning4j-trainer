@@ -89,7 +89,7 @@ class HeartbeatLeaseExtender(
             try {
                 val jobs = manager.createJobQuery().executionId(execId).locked().list()
                 jobs.forEach {
-                    val query = em.createNativeQuery("UPDATE act_ru_job SET lock_exp_time_ = ?2 WHERE id_= ?1")
+                    val query = em.createNativeQuery("UPDATE act_ru_job SET lock_exp_time_ = ?2 WHERE id_= ?1 AND lock_exp_time_ IS NOT NULL")
                     query.setParameter(1, it.id)
                     val gregorianCalendar = GregorianCalendar()
                     gregorianCalendar.time = config.clock.currentTime
