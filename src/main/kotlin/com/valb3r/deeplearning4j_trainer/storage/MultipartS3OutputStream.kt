@@ -2,6 +2,7 @@ package com.valb3r.deeplearning4j_trainer.storage
 
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.*
+import mu.KotlinLogging
 import org.springframework.util.unit.DataSize
 import java.io.ByteArrayInputStream
 import java.io.OutputStream
@@ -12,6 +13,9 @@ import java.util.concurrent.ExecutorService
 import kotlin.math.min
 
 // Amazon S3 has maximum chunks of up to 5GB, max chunk count is 10_000
+
+private val logger = KotlinLogging.logger {}
+
 class MultipartS3OutputStream(
     private val bucketName: String,
     private val objectName: String,
@@ -118,6 +122,7 @@ class MultipartS3OutputStream(
     private fun finishMultiPartUpload() {
         sendLastChunkIfNeeded()
         try {
+            logger.info { "Finishing multipart upload into ${multiPartUploadResult!!.key} with ${bytesWritten}b bytes" }
             val partETags = multiPartsUploads
             amazonS3.completeMultipartUpload(
                 CompleteMultipartUploadRequest(
@@ -127,9 +132,12 @@ class MultipartS3OutputStream(
                     partETags
                 )
             )
+            logger.info { "Finished multipart upload ${multiPartUploadResult!!.key}" }
         } catch (e: ExecutionException) {
+            logger.error(e) { "Multipart upload failed ${multiPartUploadResult!!.key}" }
             abortMultiPartUpload()
         } catch (e: InterruptedException) {
+            logger.error(e) { "Multipart upload aborted ${multiPartUploadResult!!.key}" }
             abortMultiPartUpload()
             Thread.currentThread().interrupt()
         } finally {
