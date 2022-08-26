@@ -10,10 +10,13 @@ data class TrainingSpec(
     val batchSize: Int,
     val loadUpdaterStateFromFbOnNew: Boolean = true,
     val updater: Updater,
+    val regularization: Regularization?,
     val loss: Loss
 )
 
 data class Updater(val type: String, val params: List<Double>?, val schedule: Schedule?)
+
+data class Regularization(val type: String, val params: List<Double>?)
 
 data class Schedule(val type: String, val params: List<Double>?, val mapParams: Map<Int, List<Double>>?, val mode: ScheduleType = ScheduleType.ITERATION)
 

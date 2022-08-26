@@ -45,6 +45,7 @@ data class TrainingContext(
                 0,
                 0,
                 updater = Updater("N/A", null, null),
+               regularization = null,
                 loss = Loss("N/A", emptyList())
             )
         )

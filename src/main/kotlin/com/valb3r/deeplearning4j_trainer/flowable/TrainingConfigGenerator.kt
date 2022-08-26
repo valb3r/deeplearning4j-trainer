@@ -7,13 +7,18 @@ import org.nd4j.autodiff.samediff.TrainingConfig
 import org.nd4j.linalg.learning.config.Adam
 import org.nd4j.linalg.learning.config.IUpdater
 import org.nd4j.linalg.learning.config.Nesterovs
+import org.nd4j.linalg.learning.regularization.L1Regularization
+import org.nd4j.linalg.learning.regularization.L2Regularization
+import org.nd4j.linalg.learning.regularization.Regularization
 import org.nd4j.linalg.schedule.ExponentialSchedule
 import org.nd4j.linalg.schedule.ISchedule
 import org.nd4j.linalg.schedule.MapSchedule
+import java.util.*
 
 fun makeTrainConfig(sd: SameDiff, spec: TrainingSpec) {
     sd.trainingConfig = TrainingConfig.Builder()
         .updater(makeUpdater(spec.updater))
+        .regularization(*makeRegularization(spec))
         .dataSetFeatureMapping(spec.featureVars)
         .dataSetLabelMapping(spec.labelVars)
         .build()
@@ -27,6 +32,16 @@ private fun makeUpdater(updater: Updater): IUpdater {
     }
     makeSchedule(updater)?.apply { created.setLrAndSchedule(this.valueAt(0, 0), this) }
     return created
+}
+
+private fun makeRegularization(spec: TrainingSpec): Array<Regularization> {
+    val regularization = spec.regularization ?: return arrayOf()
+    val created = when(regularization.type.toUpperCase(Locale.ENGLISH)) {
+        "L1" -> L1Regularization(regularization.params!![0])
+        "L2" -> L2Regularization(regularization.params!![0])
+        else -> throw IllegalArgumentException("Unknown regularization ${regularization.type}")
+    }
+    return arrayOf(created)
 }
 
 private fun makeSchedule(updater: Updater): ISchedule? {
