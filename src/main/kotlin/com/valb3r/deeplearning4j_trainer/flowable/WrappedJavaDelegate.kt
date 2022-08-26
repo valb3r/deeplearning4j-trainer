@@ -97,10 +97,10 @@ class HeartbeatLeaseExtender(
                     query.setParameter(2, gregorianCalendar.time, TemporalType.TIMESTAMP)
                     query.executeUpdate()
                 }
+                logger.info { "Extended lease for $execId for ${leaseTime}ms" }
             } catch (ex: Throwable) {
                 logger.error(ex) { "Failed updating lease for $execId" }
             }
-            logger.info { "Extended lease for $execId for ${leaseTime}ms" }
         }
     }
 }
