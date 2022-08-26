@@ -53,7 +53,10 @@ private fun cleanup(sd: SameDiff) {
 }
 
 fun DelegateExecution.storeSameDiff(sd: SameDiff, storage: Storage) {
-    storage.write(this.getContext()!!.trainedModelPath).use {
+    val modelPath = this.getContext()!!.trainedModelPath
+    val path = "$modelPath-update-candidate"
+    storage.write(path).use {
         Channels.newChannel(it).write(sd.asFlatBuffers(true))
     }
+    storage.move(path, modelPath)
 }

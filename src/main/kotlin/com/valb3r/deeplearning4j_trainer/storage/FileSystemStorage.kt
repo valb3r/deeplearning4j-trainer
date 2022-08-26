@@ -36,6 +36,10 @@ class FileSystemStorage: StorageSystem {
         return path.asFile().outputStream()
     }
 
+    override fun move(from: String, to: String): Boolean {
+        return from.asFile().renameTo(to.asFile())
+    }
+
     override fun exists(path: String): Boolean {
         return path.asFile().exists()
     }

@@ -67,6 +67,17 @@ class S3SystemStorage(private val conf: S3Config): StorageSystem {
         )
     }
 
+    /**
+     * Should be atomic if less than 5Gb
+     */
+    override fun move(from: String, to: String): Boolean {
+        logger.info { "Move from $from to $to" }
+        from.asS3().copyObject(from.bucket(), from.objKey(), to.bucket(), to.objKey())
+        remove(from)
+        logger.info { "Moved from $from to $to" }
+        return true
+    }
+
     override fun exists(path: String): Boolean {
         return path.asS3().doesObjectExist(path.bucket(), path.objKey())
     }

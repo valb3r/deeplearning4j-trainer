@@ -1,6 +1,7 @@
 package com.valb3r.deeplearning4j_trainer.storage
 
 import org.apache.commons.io.IOUtils
+import org.aspectj.weaver.tools.cache.SimpleCacheFactory.path
 import org.springframework.stereotype.Service
 import java.io.BufferedInputStream
 import java.io.InputStream
@@ -20,6 +21,10 @@ class StorageService(private val storages: List<StorageSystem>): Storage {
 
     override fun write(path: String): OutputStream {
         return path.storage().write(path)
+    }
+
+    override fun move(from: String, to: String): Boolean {
+        return from.storage().move(from, to)
     }
 
     override fun exists(path: String): Boolean {
@@ -66,6 +71,13 @@ interface Storage {
     fun list(path: String, recursively: Boolean = true): List<String>
     fun read(path: String): InputStream
     fun write(path: String): OutputStream
+
+    /**
+     * Move within 1 filesystem (Note - might not be atomic!)
+     * Also, for S3 it is atomic only up to 5Gb size.
+     */
+    fun move(from: String, to: String): Boolean
+
     fun exists(path: String): Boolean
     fun remove(path: String): Boolean
 }
