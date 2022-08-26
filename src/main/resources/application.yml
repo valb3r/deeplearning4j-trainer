@@ -24,6 +24,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       schema: deeplearning4j_trainer
+      maximum-pool-size: 5
   jpa:
     database-platform: com.valb3r.deeplearning4j_trainer.config.PostgreSQL10DialectWithBlob
     hibernate:
