@@ -6,7 +6,7 @@ flowable:
     async:
       executor:
         # After redeployment job might not be picked up for this time (execution will be locked without executor):
-        async-job-lock-time: PT120M # !!!! Any step should not take longer than (async-job-lock-time) 120 minutes, otherwise lock will expire and job can be picked by other exec
+        async-job-lock-time: PT10M # !!!! Keeping lock is done by Heartbeat
         max-async-jobs-due-per-acquisition: 1 # Long running jobs may get stuck in queue (we do not want them there)
 
 flowable-executor:

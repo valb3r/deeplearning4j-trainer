@@ -8,16 +8,13 @@ import com.valb3r.deeplearning4j_trainer.config.serde.InputSerde
 import com.valb3r.deeplearning4j_trainer.config.serde.OldTrainingSerde
 import com.valb3r.deeplearning4j_trainer.config.serde.TrainingSerde
 import com.valb3r.deeplearning4j_trainer.config.serde.ValidationSerde
-import liquibase.pro.packaged.p
 import org.flowable.common.engine.api.async.AsyncTaskExecutor
-import org.flowable.job.service.impl.asyncexecutor.AsyncExecutor
 import org.flowable.spring.SpringProcessEngineConfiguration
 import org.flowable.spring.boot.EngineConfigurationConfigurer
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.task.AsyncListenableTaskExecutor
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.validation.annotation.Validated
 import java.util.concurrent.Callable
