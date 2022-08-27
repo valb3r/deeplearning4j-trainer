@@ -35,7 +35,7 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
   }
 
   spec {
-    replicas = 2
+    replicas = 6
 
     selector {
       match_labels = {
@@ -157,7 +157,7 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
           # Memory config
           env {
             name = "JAVA_TOOL_OPTIONS"
-            value = "-Xmx1024M -Dorg.bytedeco.javacpp.maxbytes=1024m -Dorg.bytedeco.javacpp.maxphysicalbytes=1800m"
+            value = "-Xmx1024M -Dorg.bytedeco.javacpp.maxbytes=1024m -Dorg.bytedeco.javacpp.maxphysicalbytes=2000m"
           }
 
           // Requests must be equal to limit as the node hogs CPU constantly
