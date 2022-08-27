@@ -185,6 +185,7 @@ class UserController(
         )
         // Might cause issue if continuation process tries to find proc entity before it is saved here, Transactional should help
         proc.processId = continuation.id
+        proc.completed = false
         processRepository.save(proc)
 
         return "redirect:/"

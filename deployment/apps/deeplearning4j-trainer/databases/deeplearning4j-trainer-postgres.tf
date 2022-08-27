@@ -38,6 +38,9 @@ resource "kubernetes_manifest" "deeplearning4j_trainer_postgres" {
       "numberOfInstances" = var.db_instances
       "postgresql"        = {
         "version" = var.db_version
+        "parameters" = {
+          "max_connections" = 200 # 100 is enough for 3 runners, 6 requires 200 ? (max-pool: 5)
+        }
       }
 
       "teamId" = var.deeplearning4j_trainer_db_team
