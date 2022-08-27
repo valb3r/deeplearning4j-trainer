@@ -16,9 +16,14 @@ data class TrainingSpec(
 
 data class Updater(val type: String, val params: List<Double>?, val schedule: Schedule?)
 
-data class Regularization(val type: String, val params: List<Double>?)
+data class Regularization(val type: String, val params: List<Double>?, val schedule: Schedule?)
 
-data class Schedule(val type: String, val params: List<Double>?, val mapParams: Map<Int, List<Double>>?, val mode: ScheduleType = ScheduleType.ITERATION)
+data class Schedule(
+    val type: String,
+    val params: List<Double>?,
+    val mapParams: Map<Int, List<Double>>?,
+    val mode: ScheduleType = ScheduleType.ITERATION
+)
 
 data class Loss(val type: String, val entries: List<LossItem>)
 
