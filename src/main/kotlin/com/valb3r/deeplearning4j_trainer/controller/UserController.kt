@@ -15,7 +15,6 @@ import com.valb3r.deeplearning4j_trainer.flowable.dto.InputContext
 import com.valb3r.deeplearning4j_trainer.repository.ProcessRepository
 import com.valb3r.deeplearning4j_trainer.repository.TrainingProcessRepository
 import com.valb3r.deeplearning4j_trainer.service.MermaidSchemaExtractor
-import com.valb3r.deeplearning4j_trainer.service.poisonPill
 import com.valb3r.deeplearning4j_trainer.storage.StorageService
 import com.valb3r.deeplearning4j_trainer.storage.resolve
 import org.apache.commons.io.IOUtils
@@ -25,6 +24,7 @@ import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload
 import org.flowable.engine.HistoryService
 import org.flowable.engine.RepositoryService
 import org.flowable.engine.RuntimeService
+import org.flowable.engine.runtime.ProcessInstance
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -37,10 +37,8 @@ import org.springframework.ui.Model
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import java.io.File
-import java.lang.Thread.sleep
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDateTime
-import java.util.concurrent.ThreadLocalRandom
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 import javax.validation.constraints.NotBlank
@@ -72,13 +70,16 @@ class UserController(
     fun userIndex(@PageableDefault(page = 0, size = 10) page: Pageable, model: Model): String {
         val processes = runtime.createProcessInstanceQuery().orderByStartTime().desc().listPage(page.pageNumber, page.pageSize + 1)
         val variables = processes.map { runtime.getVariableInstance(it.id, CONTEXT) }.map { it?.value }
-        val processesAndVariables = processes.zip(variables)
+        val data = processes.zip(variables)
+        val processesAndVariables = data.map { ProcAndVar(it.first, it.second, processRepository.findByProcessId(it.first.processInstanceId)) }
         model.addAttribute("processesAndVariables", processesAndVariables.subList(0, min(processes.size, page.pageSize)))
         model.addAttribute("pageNum", page.pageNumber)
         model.addAttribute("pageSize", page.pageSize)
         model.addAttribute("hasMorePages", processes.size > page.pageSize)
         return "user/index"
     }
+
+    data class ProcAndVar(val first: ProcessInstance, val second: Any?, val dbProc: com.valb3r.deeplearning4j_trainer.domain.Process<*>?)
 
     @RequestMapping("user/processes/index.html")
     fun listActiveProcesses(@PageableDefault(page = 0, size = 10) page: Pageable, model: Model): String {
@@ -315,22 +316,12 @@ class UserController(
             .body(InputStreamResource(storage.read(file)))
     }
 
+    @Transactional
     @PostMapping("user/processes/{id}/abort")
     fun abortProcess(@PathVariable id: String): String {
-        runtime.createExecutionQuery().processInstanceId(
-            runtime.createExecutionQuery().executionId(id).singleResult().processInstanceId
-        ).signalEventSubscriptionName("ABORT_SIGNAL").list().forEach {
-            (0 until 10).forEach { _ ->
-                try {
-                    // FIXME H2 Only issue??? - Deadlocks without poison pill
-                    poisonPill.add(it.processInstanceId)
-                    runtime.signalEventReceived("ABORT_SIGNAL", it.id)
-                } catch (ex: Throwable) {
-                    sleep(ThreadLocalRandom.current().nextLong(100L, 1000L))
-                    // NOP
-                }
-            }
-        }
+        val proc = processRepository.findByProcessId(id)!!
+        proc.forceStop = true
+        processRepository.save(proc)
         return "redirect:/"
     }
 

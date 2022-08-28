@@ -1,0 +1,1 @@
+ALTER TABLE process ADD COLUMN force_stop BOOL DEFAULT FALSE;

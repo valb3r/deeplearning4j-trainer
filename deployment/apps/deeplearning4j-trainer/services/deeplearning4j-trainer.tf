@@ -35,7 +35,7 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
   }
 
   spec {
-    replicas = 6
+    replicas = 2
 
     selector {
       match_labels = {
@@ -170,7 +170,7 @@ resource "kubernetes_deployment" "deeplearning4j_trainer" {
 
             limits = {
               cpu    = "2.8"
-              memory = "3500Mi"
+              memory = "3300Mi"
             }
           }
 

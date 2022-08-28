@@ -1,5 +1,7 @@
 package com.valb3r.deeplearning4j_trainer.flowable
 
+import com.valb3r.deeplearning4j_trainer.domain.Process
+import com.valb3r.deeplearning4j_trainer.flowable.dto.Context
 import com.valb3r.deeplearning4j_trainer.repository.ProcessRepository
 import mu.KotlinLogging
 import org.flowable.engine.ManagementService
@@ -12,6 +14,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionOperations
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -24,14 +27,17 @@ private val activeExecutionsForHeartbeat = ConcurrentHashMap.newKeySet<String>()
 abstract class WrappedJavaDelegate: JavaDelegate {
 
     @Autowired var processRepository: ProcessRepository? = null
+    @Autowired var txOper: TransactionOperations? = null
 
     override fun execute(execution: DelegateExecution) {
         val name = Thread.currentThread().name
+        val proc = processRepository!!.findByProcessId(execution.processInstanceId)
 
         try {
             Thread.currentThread().name = execution.procName()
             activeExecutionsForHeartbeat.add(execution.id)
             logger.info { "Executing step ${this.javaClass.simpleName} of ${execution.processInstanceId}" }
+            handleForceStopIfNeeded(proc)
             doExecute(execution)
             logger.info { "Done executing step ${this.javaClass.simpleName}" }
         } catch (ex: BpmnError) {
@@ -56,6 +62,18 @@ abstract class WrappedJavaDelegate: JavaDelegate {
         }
 
         return id
+    }
+
+    private fun handleForceStopIfNeeded(proc: Process<Context>?) {
+        if (true != proc?.forceStop) {
+            return
+        }
+
+        txOper!!.executeWithoutResult {
+            proc.forceStop = false
+            processRepository!!.save(proc)
+        }
+        throw IllegalArgumentException("Forced stop")
     }
 
     private fun completeWithError(execution: DelegateExecution, ex: Throwable) {

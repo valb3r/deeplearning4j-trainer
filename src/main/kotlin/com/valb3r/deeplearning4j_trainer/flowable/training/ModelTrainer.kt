@@ -2,7 +2,6 @@ package com.valb3r.deeplearning4j_trainer.flowable.training
 
 import com.valb3r.deeplearning4j_trainer.flowable.*
 import com.valb3r.deeplearning4j_trainer.repository.TrainingProcessRepository
-import com.valb3r.deeplearning4j_trainer.service.poisonPill
 import com.valb3r.deeplearning4j_trainer.storage.StorageService
 import org.flowable.engine.delegate.DelegateExecution
 import org.nd4j.autodiff.listeners.At
@@ -18,10 +17,6 @@ import org.springframework.stereotype.Service
 class ModelTrainer(private val trainingRepo: TrainingProcessRepository, private val storage: StorageService): WrappedJavaDelegate() {
 
     override fun doExecute(execution: DelegateExecution) {
-        if (poisonPill.remove(execution.processInstanceId)) {
-            throw IllegalArgumentException("Aborted")
-        }
-
         val ctx = execution.getContext()
         val sd = execution.loadSameDiff(storage)
 

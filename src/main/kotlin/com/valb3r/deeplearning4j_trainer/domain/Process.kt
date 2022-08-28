@@ -43,6 +43,7 @@ abstract class Process<out T : Context>  {
 
     @Lob
     open var inputCtx: ByteArray? = null
+    open var forceStop: Boolean = false // FIXME - It is a hack, should fix flowable cancellation properly
 
     abstract fun getCtx(): T?
 

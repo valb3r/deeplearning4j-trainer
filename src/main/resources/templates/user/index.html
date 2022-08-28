@@ -57,7 +57,7 @@
                 <td th:unless="${isTraining}"></td>
                 <td th:text="${i.first.ended ? 'ENDED' : (i.first.suspended ? 'SUSPENDED' : 'ACTIVE')}"></td>
                 <td>
-                    <button type="submit" class="btn btn-danger" name="suspend" th:formaction="@{/user/processes/{id}/abort(id=${i.first.id})}">Suspend</button>
+                    <button th:if="${!(i.dbProc?.forceStop ?: false)}" type="submit" class="btn btn-danger" name="suspend" th:formaction="@{/user/processes/{id}/abort(id=${i.first.id})}">Suspend</button>
                     <a th:if="${isTraining}" th:href="@{/user/processes/{id}/start-inherited-dataset-training(id=${i.first.id})}">
                         <button type="button" class="btn btn-secondary">Train other</button>
                     </a>
@@ -79,7 +79,7 @@
                     <button type="button" class="btn btn-secondary" th:onclick="downloadAll([[${i.first.id}]], [[${i.second?.inputFiles?.size}]])">Data</button>
                 </td>
                 <td>
-                    <a th:href="@{/user/processes/{id}/notes.html(id=${i.first.id})}">Note</a>
+                    <a th:href="@{/user/processes/{id}/notes.html(id=${i.first.id})}" th:text="'Note ' + ${#strings.abbreviate((i.dbProc?.notes ?: ''), 30) ?: ''}">Note</a>
                 </td>
                 <td>
                     <a th:href="@{/user/processes/{id}/download-model-spec(id=${i.first.id})}">Model spec</a><br/>
