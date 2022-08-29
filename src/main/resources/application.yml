@@ -13,7 +13,7 @@ flowable-executor:
   pool:
     core-pool-size: 1
     max-pool-size: 1
-    queue-capacity: 10
+    queue-capacity: 1
 
 spring:
   datasource:
