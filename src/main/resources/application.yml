@@ -7,7 +7,7 @@ flowable:
       executor:
         # After redeployment job might not be picked up for this time (execution will be locked without executor):
         async-job-lock-time: PT10M # !!!! Keeping lock is done by Heartbeat
-        max-async-jobs-due-per-acquisition: 1 # Long running jobs may get stuck in queue (we do not want them there)
+        max-async-jobs-due-per-acquisition: 512 # Prevent immediate acquisition of next chunk by setting large value
 
 flowable-executor:
   pool:
