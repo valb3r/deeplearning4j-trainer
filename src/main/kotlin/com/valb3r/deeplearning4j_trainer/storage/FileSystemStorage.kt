@@ -1,6 +1,7 @@
 package com.valb3r.deeplearning4j_trainer.storage
 
 import org.springframework.stereotype.Service
+import java.io.BufferedInputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -25,7 +26,7 @@ class FileSystemStorage: StorageSystem {
     }
 
     override fun read(path: String): InputStream {
-        return path.asFile().inputStream()
+        return BufferedInputStream(path.asFile().inputStream(), 10 * 1024 * 1024)
     }
 
     override fun write(path: String): OutputStream {
