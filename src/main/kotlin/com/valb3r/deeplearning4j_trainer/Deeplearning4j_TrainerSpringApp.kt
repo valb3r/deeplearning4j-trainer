@@ -4,8 +4,7 @@ import com.valb3r.deeplearning4j_trainer.config.DirectoriesConfig
 import com.valb3r.deeplearning4j_trainer.config.FlowableConfig
 import com.valb3r.deeplearning4j_trainer.config.S3Config
 import com.valb3r.deeplearning4j_trainer.config.UsersConfig
-import com.valb3r.deeplearning4j_trainer.s3_urlconnection_adapter.Handler
-import com.valb3r.deeplearning4j_trainer.s3_urlconnection_adapter.S3URLConnection
+import com.valb3r.deeplearning4j_trainer.s3_urlconnection_adapter.s3.Handler
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties

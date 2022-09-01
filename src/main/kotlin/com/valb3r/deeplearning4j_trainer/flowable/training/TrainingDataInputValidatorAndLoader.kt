@@ -135,7 +135,7 @@ class TrainingDataInputValidatorAndLoader(
                 totalRows += count
             } else if (file.endsWith(".bin.jar")) {
                 val loader = ClassLoader.getSystemClassLoader() as DynamicClassLoader
-                loader.add(File(file).toURI().toURL())
+                loader.add(URL(file))
                 val loaded = Class.forName("com.example.datagen.source_generators.SourceMixerToAnyOf_Fst", true, ClassLoader.getSystemClassLoader())
                 println("Loaded $loaded")
             } else {
