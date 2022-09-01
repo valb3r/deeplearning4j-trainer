@@ -2,6 +2,7 @@ package com.valb3r.deeplearning4j_trainer.flowable.training
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
+import com.valb3r.deeplearning4j_trainer.classloaders.DynamicClassLoader
 import com.valb3r.deeplearning4j_trainer.domain.Dataset
 import com.valb3r.deeplearning4j_trainer.domain.DatasetFile
 import com.valb3r.deeplearning4j_trainer.domain.TrainingProcess
@@ -19,8 +20,7 @@ import org.flowable.engine.delegate.DelegateExecution
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.io.File
-
-
+import java.net.URL
 
 
 /**
@@ -51,7 +51,7 @@ class TrainingDataInputValidatorAndLoader(
         val inputFolder = ctx.inputDataPath
         extractZipFilesAndDeleteArch(inputFolder, storage)
         val files = storage.list(inputFolder)
-        val dataFiles = ctx.dataFilesPath ?: files.filter { it.endsWith(".csv") || it.endsWith(".csv.data.bin") }
+        val dataFiles = ctx.dataFilesPath ?: files.filter { it.endsWith(".csv") || it.endsWith(".csv.data.bin") || it.endsWith(".bin.jar") }
         val trainSpecFiles = files.filter { it.endsWith(".train.yaml") }
         val modelFiles = files.filter { it.endsWith(".fb") }
         val modelSpecFiles = files.filter { it.endsWith(".model.yaml") }
@@ -133,6 +133,11 @@ class TrainingDataInputValidatorAndLoader(
                 FstSerDe.FstIterator(file, storage).forEachRemaining { count++ }
                 result += file
                 totalRows += count
+            } else if (file.endsWith(".bin.jar")) {
+                val loader = ClassLoader.getSystemClassLoader() as DynamicClassLoader
+                loader.add(File(file).toURI().toURL())
+                val loaded = Class.forName("com.example.datagen.source_generators.SourceMixerToAnyOf_Fst", true, ClassLoader.getSystemClassLoader())
+                println("Loaded $loaded")
             } else {
                 totalRows += csvToBinAndRemoveSrc(file, mapper, result, storage)
             }
