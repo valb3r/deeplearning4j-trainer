@@ -32,5 +32,5 @@ data class LossItem(val varName: String, var labelName: String, val weight: Doub
 
 data class JarIntegration(
     val integrationClass: String,
-    val params: Map<String, String>
+    val params: Map<String, String>?
 )

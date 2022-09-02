@@ -47,7 +47,7 @@ class FilePoolFlatBufferDatasetIterator(
                 val file = dataFilePool.first()
                 dataFilePool.remove(file)
                 binIter = if (file.isJarDataFile()) {
-                    JarIterator(jarIntegration!!.integrationClass, jarIntegration!!.params)
+                    JarIterator(jarIntegration!!.integrationClass, jarIntegration!!.params ?: mapOf())
                 } else {
                     FstSerDe.FstIterator(file, storage)
                 }

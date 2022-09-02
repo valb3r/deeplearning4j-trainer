@@ -128,11 +128,12 @@ class TrainingDataInputValidatorAndLoader(
         val result = mutableListOf<String>()
         for (file in files) {
             if (file.isBinDataFile()) {
-                // NOP
+                result += file
             } else if (file.isJarDataFile()) {
                 val loader = ClassLoader.getSystemClassLoader() as DynamicClassLoader
                 loader.add(URL(file))
                 Class.forName(spec.jarIntegration!!.integrationClass, true, ClassLoader.getSystemClassLoader())
+                result += file
             } else {
                 csvToBinAndRemoveSrc(file, mapper, result, storage)
             }

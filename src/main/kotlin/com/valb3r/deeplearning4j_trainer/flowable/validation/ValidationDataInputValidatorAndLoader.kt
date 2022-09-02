@@ -77,7 +77,7 @@ class ValidationDataInputValidatorAndLoader(
         val result = mutableListOf<String>()
         for (file in files) {
             if (file.isBinDataFile()) {
-                // NOP
+                result += file
             } else {
                 csvToBinAndRemoveSrc(file, mapper, result, storage)
             }
