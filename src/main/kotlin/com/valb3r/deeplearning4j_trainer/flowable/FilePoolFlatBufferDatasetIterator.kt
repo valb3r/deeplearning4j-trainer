@@ -11,6 +11,8 @@ import org.nd4j.linalg.dataset.api.iterator.MultiDataSetIterator
 import org.nd4j.linalg.factory.Nd4j
 
 
+private val cachedJarSources = mutableMapOf<String, JarIterator>()
+
 class FilePoolFlatBufferDatasetIterator(
     private val storage: Storage,
     private val batchSize: Int,
@@ -47,7 +49,7 @@ class FilePoolFlatBufferDatasetIterator(
                 val file = dataFilePool.first()
                 dataFilePool.remove(file)
                 binIter = if (file.isJarDataFile()) {
-                    JarIterator(jarIntegration!!.integrationClass, jarIntegration!!.params ?: mapOf())
+                    cachedJarSources.computeIfAbsent(file) { jarIterator(file) }.reset()
                 } else {
                     FstSerDe.FstIterator(file, storage)
                 }
@@ -109,8 +111,6 @@ class FilePoolFlatBufferDatasetIterator(
         binIter!!.skipNext()
     }
 
-    private fun noBinIterOrEmpty() = null == binIter || !binIter!!.hasNext()
-
     override fun remove() {
         TODO("Not yet implemented")
     }
@@ -134,4 +134,11 @@ class FilePoolFlatBufferDatasetIterator(
     override fun reset() {
         TODO("Not yet implemented")
     }
+
+    private fun jarIterator(file: String): JarIterator {
+        file.asJarloadClass(jarIntegration!!.integrationClass)
+        return JarIterator(jarIntegration!!.integrationClass, jarIntegration!!.params ?: mapOf())
+    }
+
+    private fun noBinIterOrEmpty() = null == binIter || !binIter!!.hasNext()
 }

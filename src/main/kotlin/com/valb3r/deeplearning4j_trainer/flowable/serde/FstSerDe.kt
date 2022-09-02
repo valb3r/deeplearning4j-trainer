@@ -119,6 +119,10 @@ class FstSerDe {
             }
         }
 
+        override fun reset(): DataIterator {
+            TODO("Not yet implemented")
+        }
+
         override fun close() {
             fIf.close()
         }
@@ -157,6 +161,7 @@ class JarIterator(
 
     private val hasNextI: Method = clazz.getDeclaredMethod("hasNext")
     private val nextI: Method = clazz.getDeclaredMethod("next")
+    private val resetI: Method = clazz.getDeclaredMethod("reset")
 
     override fun hasNext(): Boolean {
         return hasNextI.invoke(clazzInstance) as Boolean
@@ -166,10 +171,15 @@ class JarIterator(
         return nextI.invoke(clazzInstance) as Map<String, FloatArray>
     }
 
+    override fun reset(): DataIterator {
+        resetI.invoke(clazzInstance)
+        return this
+    }
+
+
     override fun skipNext() {
         next()
     }
-
     override fun close() {
         // NOP
     }
@@ -178,4 +188,5 @@ class JarIterator(
 interface DataIterator: Iterator<Map<String, FloatArray>>, Closeable {
 
     fun skipNext()
+    fun reset(): DataIterator
 }
