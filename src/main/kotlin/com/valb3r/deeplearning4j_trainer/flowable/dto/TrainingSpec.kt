@@ -12,7 +12,7 @@ data class TrainingSpec(
     val updater: Updater,
     val regularization: Regularization?,
     val loss: Loss,
-    val jarIntegration: JarIntegration?
+    val jarIntegration: JarIntegration? = null
 )
 
 data class Updater(val type: String, val params: List<Double>?, val schedule: Schedule?)
@@ -31,7 +31,6 @@ data class Loss(val type: String, val entries: List<LossItem>)
 data class LossItem(val varName: String, var labelName: String, val weight: Double? = 1.0)
 
 data class JarIntegration(
-    val ipcFilePath: String,
-    val mainClassName: String,
-    val params: Array<String>?
+    val integrationClass: String,
+    val params: Map<String, String>
 )

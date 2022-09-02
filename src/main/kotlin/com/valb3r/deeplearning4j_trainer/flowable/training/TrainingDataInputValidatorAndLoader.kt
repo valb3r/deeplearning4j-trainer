@@ -132,7 +132,7 @@ class TrainingDataInputValidatorAndLoader(
             } else if (file.isJarDataFile()) {
                 val loader = ClassLoader.getSystemClassLoader() as DynamicClassLoader
                 loader.add(URL(file))
-                Class.forName(spec.jarIntegration!!.mainClassName, true, ClassLoader.getSystemClassLoader())
+                Class.forName(spec.jarIntegration!!.integrationClass, true, ClassLoader.getSystemClassLoader())
             } else {
                 csvToBinAndRemoveSrc(file, mapper, result, storage)
             }

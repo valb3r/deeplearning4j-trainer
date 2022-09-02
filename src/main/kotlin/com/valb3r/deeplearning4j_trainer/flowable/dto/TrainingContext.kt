@@ -24,7 +24,8 @@ data class TrainingContext(
             trainingSpec.batchSize,
             trainingSpec.featureVars,
             trainingSpec.labelVars,
-            inputFiles
+            inputFiles,
+            jarIntegration = trainingSpec.jarIntegration
         )
     }
 

@@ -1,5 +1,9 @@
 package com.valb3r.deeplearning4j_trainer.flowable
 
+import com.valb3r.deeplearning4j_trainer.flowable.dto.JarIntegration
+import com.valb3r.deeplearning4j_trainer.flowable.serde.DataIterator
+import com.valb3r.deeplearning4j_trainer.flowable.serde.FstSerDe
+import com.valb3r.deeplearning4j_trainer.flowable.serde.JarIterator
 import com.valb3r.deeplearning4j_trainer.storage.Storage
 import org.nd4j.linalg.dataset.api.MultiDataSet
 import org.nd4j.linalg.dataset.api.MultiDataSetPreProcessor
@@ -13,10 +17,11 @@ class FilePoolFlatBufferDatasetIterator(
     private val featureNames: List<String>,
     private val labelNames: List<String>,
     dataFiles: List<String>,
-    private var binIter: FstSerDe.FstIterator? = null,
+    private var binIter: DataIterator? = null,
     private var dataFilePool: MutableSet<String> = linkedSetOf(*dataFiles.toTypedArray()),
     private var fetchedSize: Long = 0,
     private var resultSetIdName: String? = null,
+    private var jarIntegration: JarIntegration? = null,
     var resultSetIds: MutableList<Float>? = null,
     var computedDatasetSize: Long = 0L
 ): MultiDataSetIterator {
@@ -41,7 +46,11 @@ class FilePoolFlatBufferDatasetIterator(
             if (noBinIterOrEmpty()) {
                 val file = dataFilePool.first()
                 dataFilePool.remove(file)
-                binIter = FstSerDe.FstIterator(file, storage)
+                binIter = if (file.isJarDataFile()) {
+                    JarIterator(jarIntegration!!.integrationClass, jarIntegration!!.params)
+                } else {
+                    FstSerDe.FstIterator(file, storage)
+                }
             }
 
             val entry = binIter!!.next()

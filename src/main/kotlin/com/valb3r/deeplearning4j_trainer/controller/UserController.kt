@@ -9,7 +9,7 @@ import com.valb3r.deeplearning4j_trainer.config.DirectoriesConfig
 import com.valb3r.deeplearning4j_trainer.domain.TrainingProcess
 import com.valb3r.deeplearning4j_trainer.domain.ValidationProcess
 import com.valb3r.deeplearning4j_trainer.flowable.CONTEXT
-import com.valb3r.deeplearning4j_trainer.flowable.FstSerDe
+import com.valb3r.deeplearning4j_trainer.flowable.serde.FstSerDe
 import com.valb3r.deeplearning4j_trainer.flowable.INPUT
 import com.valb3r.deeplearning4j_trainer.flowable.dto.InputContext
 import com.valb3r.deeplearning4j_trainer.repository.ProcessRepository
