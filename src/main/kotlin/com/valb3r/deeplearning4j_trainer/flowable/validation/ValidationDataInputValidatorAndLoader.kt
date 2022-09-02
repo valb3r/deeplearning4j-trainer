@@ -37,7 +37,7 @@ class ValidationDataInputValidatorAndLoader(
         extractZipFilesAndDeleteArch(validationFolder, storage)
         val files = storage.list(validationFolder)
         val validationSpecFiles = files.filter { it.endsWith(".validation.yaml") }
-        val dataFiles = inputCtx.dataFilesPath ?: files.filter { it.endsWith(".csv") || it.endsWith(".csv.data.bin") }
+        val dataFiles = inputCtx.dataFilesPath ?: files.filter { it.isCsvDataFile() || it.isBinDataFile() }
         val trainedModelPath = inputCtx.modelPath ?: files.first { it.endsWith(".fb") }
 
         if (validationSpecFiles.isEmpty()) {
@@ -76,7 +76,7 @@ class ValidationDataInputValidatorAndLoader(
         val mapper = CsvMapper()
         val result = mutableListOf<String>()
         for (file in files) {
-            if (file.endsWith(".csv.data.bin")) {
+            if (file.isBinDataFile()) {
                 // NOP
             } else {
                 csvToBinAndRemoveSrc(file, mapper, result, storage)

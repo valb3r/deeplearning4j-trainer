@@ -9,6 +9,19 @@ import java.io.FileOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
+fun String.isBinDataFile(): Boolean {
+    return this.endsWith(".csv.data.bin")
+}
+
+fun String.isJarDataFile(): Boolean {
+    return this.endsWith(".bin.jar")
+}
+
+fun String.isCsvDataFile(): Boolean {
+    return this.endsWith(".csv")
+}
+
+
 fun extractZipFilesAndDeleteArch(inputFolder: String, storage: Storage) {
     val zipFiles = storage.list(inputFolder).filter { it.endsWith(".zip") }
     for (zipFile in zipFiles) {

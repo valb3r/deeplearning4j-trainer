@@ -20,6 +20,7 @@ import org.flowable.engine.delegate.DelegateExecution
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.io.File
+import java.lang.IllegalArgumentException
 import java.net.URL
 
 
@@ -51,7 +52,7 @@ class TrainingDataInputValidatorAndLoader(
         val inputFolder = ctx.inputDataPath
         extractZipFilesAndDeleteArch(inputFolder, storage)
         val files = storage.list(inputFolder)
-        val dataFiles = ctx.dataFilesPath ?: files.filter { it.endsWith(".csv") || it.endsWith(".csv.data.bin") || it.endsWith(".bin.jar") }
+        val dataFiles = ctx.dataFilesPath ?: files.filter { it.isCsvDataFile() || it.isBinDataFile() || it.isJarDataFile() }
         val trainSpecFiles = files.filter { it.endsWith(".train.yaml") }
         val modelFiles = files.filter { it.endsWith(".fb") }
         val modelSpecFiles = files.filter { it.endsWith(".model.yaml") }
@@ -86,7 +87,7 @@ class TrainingDataInputValidatorAndLoader(
         val modelSpec = modelSpecFiles.firstOrNull()?.let {
             storage.read(inputFolder.resolve(it)).use { yamlObjectMapper.readValue(it, ModelSpec::class.java) }
         }
-        val filesAndDatasetSize = countRowsAndTranslateInputDataFilesToBinFormat(dataFiles)
+        val filesAndDatasetSize = countRowsAndTranslateInputDataFilesToBinFormat(trainSpec, dataFiles)
         val logPath = ctx.outputDataPath.resolve("${execution.processInstanceId}.log")
         val trainedModelPath = ctx.outputDataPath.resolve("model.fb")
 
@@ -122,17 +123,16 @@ class TrainingDataInputValidatorAndLoader(
         return trainingRepo.save(trainingProc)
     }
 
-    private fun countRowsAndTranslateInputDataFilesToBinFormat(files: List<String>): List<String> {
+    private fun countRowsAndTranslateInputDataFilesToBinFormat(spec: TrainingSpec, files: List<String>): List<String> {
         val mapper = CsvMapper()
         val result = mutableListOf<String>()
         for (file in files) {
-            if (file.endsWith(".csv.data.bin")) {
+            if (file.isBinDataFile()) {
                 // NOP
-            } else if (file.endsWith(".bin.jar")) {
+            } else if (file.isJarDataFile()) {
                 val loader = ClassLoader.getSystemClassLoader() as DynamicClassLoader
                 loader.add(URL(file))
-                val loaded = Class.forName("com.example.datagen.source_generators.SourceMixerToAnyOf_Fst", true, ClassLoader.getSystemClassLoader())
-                println("Loaded $loaded")
+                Class.forName(spec.jarIntegration!!.mainClassName, true, ClassLoader.getSystemClassLoader())
             } else {
                 csvToBinAndRemoveSrc(file, mapper, result, storage)
             }
