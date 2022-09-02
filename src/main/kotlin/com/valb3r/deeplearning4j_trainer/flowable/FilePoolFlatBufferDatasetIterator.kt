@@ -9,7 +9,6 @@ import org.nd4j.linalg.factory.Nd4j
 
 class FilePoolFlatBufferDatasetIterator(
     private val storage: Storage,
-    private val dataSize: Long,
     private val batchSize: Int,
     private val featureNames: List<String>,
     private val labelNames: List<String>,
@@ -19,24 +18,32 @@ class FilePoolFlatBufferDatasetIterator(
     private var fetchedSize: Long = 0,
     private var resultSetIdName: String? = null,
     var resultSetIds: MutableList<Float>? = null,
+    var computedDatasetSize: Long = 0L
 ): MultiDataSetIterator {
 
     override fun hasNext(): Boolean {
-        return fetchedSize < dataSize
+        if (noBinIterOrEmpty()) {
+            if (dataFilePool.isEmpty()) { // No data left
+                return false
+            }
+        }
+
+        return true
     }
 
     override fun next(num: Int): MultiDataSet {
         val features = mutableMapOf<String, MutableList<FloatArray>>()
         val labels = mutableMapOf<String, MutableList<FloatArray>>()
         for (ind in 0 until num) {
-            if (null == binIter || !binIter!!.hasNext()) {
-                if (dataFilePool.isEmpty()) { // No data left
-                    break
-                }
+            if (!hasNext()) {
+                break
+            }
+            if (noBinIterOrEmpty()) {
                 val file = dataFilePool.first()
                 dataFilePool.remove(file)
                 binIter = FstSerDe.FstIterator(file, storage)
             }
+
             val entry = binIter!!.next()
 
             if (null != resultSetIdName) {
@@ -57,6 +64,7 @@ class FilePoolFlatBufferDatasetIterator(
                     labels.computeIfAbsent(name) { mutableListOf() }.add(vals)
                 }
             }
+            computedDatasetSize++
         }
 
         if (features.isEmpty()) {
@@ -80,7 +88,7 @@ class FilePoolFlatBufferDatasetIterator(
     }
 
     fun skipNext() {
-        if (null == binIter || !binIter!!.hasNext()) {
+        if (noBinIterOrEmpty()) {
             if (dataFilePool.isEmpty()) { // No data left
                 throw IllegalArgumentException("Empty")
             }
@@ -91,6 +99,8 @@ class FilePoolFlatBufferDatasetIterator(
 
         binIter!!.skipNext()
     }
+
+    private fun noBinIterOrEmpty() = null == binIter || !binIter!!.hasNext()
 
     override fun remove() {
         TODO("Not yet implemented")

@@ -20,9 +20,10 @@ class ModelTrainer(private val trainingRepo: TrainingProcessRepository, private 
         val ctx = execution.getContext()
         val sd = execution.loadSameDiff(storage)
 
+        val iter = ctx!!.trainingIterator(storage)
         val lossListener = LossListener()
         sd.fit(
-            ctx!!.trainingIterator(storage),
+            iter,
             1,
             ScoreListener(10),
             lossListener
@@ -32,7 +33,8 @@ class ModelTrainer(private val trainingRepo: TrainingProcessRepository, private 
         execution.updateContext { it.copy(
             loss = lossListener.loss,
             updaterName = sd.trainingConfig.updater.javaClass.simpleName,
-            updaterStep = sd.trainingConfig.updater.getLearningRate(0, lossListener.epoch.toInt()).toString()
+            updaterStep = sd.trainingConfig.updater.getLearningRate(0, lossListener.epoch.toInt()).toString(),
+            datasetSize = iter.computedDatasetSize
         ) }
         val process = trainingRepo.findByProcessId(execution.processInstanceId)!!
         process.setCtx(ctx)

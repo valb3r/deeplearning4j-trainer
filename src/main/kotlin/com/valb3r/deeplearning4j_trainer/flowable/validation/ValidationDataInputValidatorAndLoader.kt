@@ -57,8 +57,7 @@ class ValidationDataInputValidatorAndLoader(
         val ctx = ValidationContext(
             validationSpec = validationSpec,
             validations = validationSpec.validations,
-            inputFiles = filesAndDatasetSize.first,
-            datasetSize = filesAndDatasetSize.second,
+            inputFiles = filesAndDatasetSize,
             currentEpoch = 0L,
             validationDataPath = validationFolder,
             trainedModelPath = trainedModelPath
@@ -73,21 +72,17 @@ class ValidationDataInputValidatorAndLoader(
         validationRepo.save(validationProc)
     }
 
-    private fun countRowsAndTranslateInputDataFilesToBinFormat(files: List<String>): Pair<List<String>, Long> {
+    private fun countRowsAndTranslateInputDataFilesToBinFormat(files: List<String>): List<String> {
         val mapper = CsvMapper()
         val result = mutableListOf<String>()
-        var totalRows = 0L
         for (file in files) {
             if (file.endsWith(".csv.data.bin")) {
-                var count = 0
-                FstSerDe.FstIterator(file, storage).forEachRemaining { count++ }
-                result += file
-                totalRows += count
+                // NOP
             } else {
-                totalRows += csvToBinAndRemoveSrc(file, mapper, result, storage)
+                csvToBinAndRemoveSrc(file, mapper, result, storage)
             }
         }
 
-        return Pair(result, totalRows)
+        return result
     }
 }

@@ -96,8 +96,7 @@ class TrainingDataInputValidatorAndLoader(
             trainingLogPath = logPath,
             trainedModelPath = trainedModelPath,
             trainingSpec = trainSpec,
-            inputFiles = filesAndDatasetSize.first,
-            datasetSize = filesAndDatasetSize.second,
+            inputFiles = filesAndDatasetSize,
             modelPath = modelFiles.firstOrNull(),
             modelSpec = modelSpec,
             currentEpoch = 0L
@@ -123,26 +122,22 @@ class TrainingDataInputValidatorAndLoader(
         return trainingRepo.save(trainingProc)
     }
 
-    private fun countRowsAndTranslateInputDataFilesToBinFormat(files: List<String>): Pair<List<String>, Long> {
+    private fun countRowsAndTranslateInputDataFilesToBinFormat(files: List<String>): List<String> {
         val mapper = CsvMapper()
         val result = mutableListOf<String>()
-        var totalRows = 0L
         for (file in files) {
             if (file.endsWith(".csv.data.bin")) {
-                var count = 0
-                FstSerDe.FstIterator(file, storage).forEachRemaining { count++ }
-                result += file
-                totalRows += count
+                // NOP
             } else if (file.endsWith(".bin.jar")) {
                 val loader = ClassLoader.getSystemClassLoader() as DynamicClassLoader
                 loader.add(URL(file))
                 val loaded = Class.forName("com.example.datagen.source_generators.SourceMixerToAnyOf_Fst", true, ClassLoader.getSystemClassLoader())
                 println("Loaded $loaded")
             } else {
-                totalRows += csvToBinAndRemoveSrc(file, mapper, result, storage)
+                csvToBinAndRemoveSrc(file, mapper, result, storage)
             }
         }
 
-        return Pair(result, totalRows)
+        return result
     }
 }
