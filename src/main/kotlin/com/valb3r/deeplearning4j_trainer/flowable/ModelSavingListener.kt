@@ -13,7 +13,6 @@ import org.nd4j.linalg.dataset.api.MultiDataSet
 class ModelSavingListener(
     private val frequency: Int,
     private val execution: DelegateExecution,
-    private val sd: SameDiff,
     private val storage: Storage
 ): BaseListener()  {
 

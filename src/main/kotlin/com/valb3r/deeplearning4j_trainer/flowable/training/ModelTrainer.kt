@@ -17,8 +17,9 @@ class ModelTrainer(private val trainingRepo: TrainingProcessRepository, private 
         val sd = execution.loadSameDiff(storage)
 
         val iter = ctx!!.trainingIterator(storage)
+        // TODO - Consider doing iter.skip() to jump to the point where ModelSavingListener may have stopped
         val lossListener = LossListener()
-        val modelSavingListener = ModelSavingListener(1000, execution, sd, storage)
+        val modelSavingListener = ModelSavingListener(1000, execution, storage)
 
         sd.fit(
             iter,
