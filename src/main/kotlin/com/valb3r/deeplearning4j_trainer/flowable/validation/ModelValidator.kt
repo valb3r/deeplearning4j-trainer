@@ -3,6 +3,7 @@ package com.valb3r.deeplearning4j_trainer.flowable.validation
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.valb3r.deeplearning4j_trainer.flowable.*
 import com.valb3r.deeplearning4j_trainer.flowable.calculator.ExpressionParser
+import com.valb3r.deeplearning4j_trainer.flowable.dto.Context
 import com.valb3r.deeplearning4j_trainer.repository.ValidationProcessRepository
 import com.valb3r.deeplearning4j_trainer.storage.StorageService
 import org.flowable.engine.delegate.DelegateExecution
@@ -14,10 +15,10 @@ class ModelValidator(
     private val validationRepo: ValidationProcessRepository,
     private val mapper: ObjectMapper,
     private val storage: StorageService
-): WrappedJavaDelegate() {
+): WrappedFutureJavaDelegate() {
 
-    override fun doExecute(execution: DelegateExecution) {
-        val ctx = execution.getValidationContext()!!
+    override fun doExecute(execution: DelegateExecution): Context {
+        var ctx = execution.getValidationContext()!!
         val sd = execution.loadValidationSameDiff(storage)
         val parser = ExpressionParser(sd)
         val variables = mutableSetOf<String>()
@@ -46,15 +47,14 @@ class ModelValidator(
             )
         }
 
-        execution.updateContext {
-            it.copy(
-                datasetSize = iter.computedDatasetSize
-            )
+        ctx = ctx.copy(datasetSize = iter.computedDatasetSize)
+        txOper!!.executeWithoutResult {
+            val process = validationRepo.findByProcessId(execution.processInstanceId)!!
+            process.setCtx(ctx)
+            process.validationResult = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(metrics)
+            validationRepo.save(process)
         }
-        val process = validationRepo.findByProcessId(execution.processInstanceId)!!
-        process.setCtx(ctx)
-        process.validationResult = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(metrics)
-        validationRepo.save(process)
+        return ctx
     }
 
     fun extract(array: INDArray): Array<FloatArray> {

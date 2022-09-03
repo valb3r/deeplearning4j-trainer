@@ -1,5 +1,6 @@
 package com.valb3r.deeplearning4j_trainer.flowable.validation
 
+import com.valb3r.deeplearning4j_trainer.flowable.WrappedFutureJavaDelegate
 import com.valb3r.deeplearning4j_trainer.flowable.WrappedJavaDelegate
 import com.valb3r.deeplearning4j_trainer.flowable.getValidationContext
 import com.valb3r.deeplearning4j_trainer.flowable.setContext

@@ -11,9 +11,9 @@ flowable:
 
 flowable-executor:
   pool:
-    core-pool-size: 1
-    max-pool-size: 1
-    queue-capacity: 1
+    core-pool-size: 10
+    max-pool-size: 10
+    queue-capacity: 10
 
 spring:
   datasource:
@@ -41,11 +41,12 @@ spring:
     store-type: jdbc
 
 server:
+  port: 18080
   forward-headers-strategy: framework
 
 directories:
-  input: s3://localhost:9000/training-bucket/input/
-  output: s3://localhost:9000/training-bucket/output/
+  input: file:///Users/valentynberezin/IdeaProjects/acoustico/input/
+  output: file:///Users/valentynberezin/IdeaProjects/acoustico/output/
 
 s3:
   access-key-id: minio

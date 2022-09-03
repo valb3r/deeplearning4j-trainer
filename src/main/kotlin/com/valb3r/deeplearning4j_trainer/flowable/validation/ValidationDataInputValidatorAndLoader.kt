@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.valb3r.deeplearning4j_trainer.domain.ValidationProcess
 import com.valb3r.deeplearning4j_trainer.flowable.*
+import com.valb3r.deeplearning4j_trainer.flowable.dto.Context
 import com.valb3r.deeplearning4j_trainer.flowable.dto.ValidationContext
 import com.valb3r.deeplearning4j_trainer.flowable.dto.ValidationSpec
 import com.valb3r.deeplearning4j_trainer.repository.ValidationProcessRepository
@@ -13,24 +14,26 @@ import org.flowable.engine.delegate.BpmnError
 import org.flowable.engine.delegate.DelegateExecution
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
-import java.io.File
 
 @Service("validationDataInputValidatorAndLoader")
 class ValidationDataInputValidatorAndLoader(
     @Qualifier("yamlObjectMapper") private val yamlObjectMapper: ObjectMapper,
     private val validationRepo: ValidationProcessRepository,
     private val storage: StorageService
-): WrappedJavaDelegate() {
+): WrappedFutureJavaDelegate() {
 
-    override fun doExecute(execution: DelegateExecution) {
-        var validationProc = ValidationProcess(
-            processId = execution.processInstanceId,
-            trainedModelPath = "NOT-SET",
-            businessKey = execution.processInstanceBusinessKey,
-            validationContext = null,
-            processDefinitionName = execution.processDefinitionId
-        )
-        validationProc = validationRepo.save(validationProc)
+    override fun doExecute(execution: DelegateExecution): Context {
+        val validationProc = txOper!!.execute {
+            val validationProc = ValidationProcess(
+                processId = execution.processInstanceId,
+                trainedModelPath = "NOT-SET",
+                businessKey = execution.processInstanceBusinessKey,
+                validationContext = null,
+                processDefinitionName = execution.processDefinitionId
+            )
+            validationRepo.save(validationProc)
+        }!!
+
 
         val inputCtx = execution.getInput()
         val validationFolder = inputCtx.inputDataPath
@@ -63,13 +66,15 @@ class ValidationDataInputValidatorAndLoader(
             trainedModelPath = trainedModelPath
         )
 
-        execution.setContext(ctx)
-        validationProc.trainedModelPath = ctx.trainedModelPath
-        validationProc.bestPerformingTrainedModelPath = ctx.trainedModelPath
-        validationProc.setCtx(ctx)
-        validationProc.completed = false
-        validationProc.businessKey = execution.processInstanceBusinessKey
-        validationRepo.save(validationProc)
+        txOper!!.executeWithoutResult {
+            validationProc.trainedModelPath = ctx.trainedModelPath
+            validationProc.bestPerformingTrainedModelPath = ctx.trainedModelPath
+            validationProc.setCtx(ctx)
+            validationProc.completed = false
+            validationProc.businessKey = execution.processInstanceBusinessKey
+            validationRepo.save(validationProc)
+        }
+        return ctx
     }
 
     private fun countRowsAndTranslateInputDataFilesToBinFormat(files: List<String>): List<String> {

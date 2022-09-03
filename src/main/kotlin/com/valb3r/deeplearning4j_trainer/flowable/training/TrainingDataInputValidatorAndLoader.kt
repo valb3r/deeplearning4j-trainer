@@ -2,26 +2,18 @@ package com.valb3r.deeplearning4j_trainer.flowable.training
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
-import com.valb3r.deeplearning4j_trainer.classloaders.DynamicClassLoader
 import com.valb3r.deeplearning4j_trainer.domain.Dataset
 import com.valb3r.deeplearning4j_trainer.domain.DatasetFile
 import com.valb3r.deeplearning4j_trainer.domain.TrainingProcess
 import com.valb3r.deeplearning4j_trainer.flowable.*
-import com.valb3r.deeplearning4j_trainer.flowable.dto.InputContext
-import com.valb3r.deeplearning4j_trainer.flowable.dto.ModelSpec
-import com.valb3r.deeplearning4j_trainer.flowable.dto.TrainingContext
-import com.valb3r.deeplearning4j_trainer.flowable.dto.TrainingSpec
+import com.valb3r.deeplearning4j_trainer.flowable.dto.*
 import com.valb3r.deeplearning4j_trainer.repository.TrainingProcessRepository
-import com.valb3r.deeplearning4j_trainer.storage.Storage
 import com.valb3r.deeplearning4j_trainer.storage.StorageService
 import com.valb3r.deeplearning4j_trainer.storage.resolve
 import org.flowable.engine.delegate.BpmnError
 import org.flowable.engine.delegate.DelegateExecution
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
-import java.io.File
-import java.lang.IllegalArgumentException
-import java.net.URL
 
 
 /**
@@ -35,18 +27,20 @@ import java.net.URL
 class TrainingDataInputValidatorAndLoader(
     @Qualifier("yamlObjectMapper") private val yamlObjectMapper: ObjectMapper,
     private val trainingRepo: TrainingProcessRepository,
-    private val storage: StorageService
-): WrappedJavaDelegate() {
+    private val storage: StorageService,
+): WrappedFutureJavaDelegate() {
 
-    override fun doExecute(execution: DelegateExecution) {
-        var trainingProc = TrainingProcess(
-            processId = execution.processInstanceId,
-            trainedModelPath = "NOT-SET",
-            businessKey = execution.processInstanceBusinessKey,
-            trainingContext = null,
-            processDefinitionName = execution.processDefinitionId
-        )
-        trainingProc = trainingRepo.save(trainingProc)
+    override fun doExecute(execution: DelegateExecution): Context {
+        var trainingProc = txOper!!.execute {
+            val trainingProc = TrainingProcess(
+                processId = execution.processInstanceId,
+                trainedModelPath = "NOT-SET",
+                businessKey = execution.processInstanceBusinessKey,
+                trainingContext = null,
+                processDefinitionName = execution.processDefinitionId
+            )
+            return@execute trainingRepo.save(trainingProc)
+        }!!
 
         val ctx = execution.getInput()
         val inputFolder = ctx.inputDataPath
@@ -57,7 +51,7 @@ class TrainingDataInputValidatorAndLoader(
         val modelFiles = files.filter { it.endsWith(".fb") }
         val modelSpecFiles = files.filter { it.endsWith(".model.yaml") }
 
-        trainingProc = saveDatasetIfAvailable(ctx, trainingProc, dataFiles)
+        trainingProc = txOper!!.execute { saveDatasetIfAvailable(ctx, trainingProc, dataFiles) }!!
 
         if (modelFiles.size > 1) {
             throw BpmnError("INPUT_ERR", "There should be 0 or 1 model files (*.fb)")
@@ -102,12 +96,15 @@ class TrainingDataInputValidatorAndLoader(
             modelSpec = modelSpec,
             currentEpoch = 0L
         )
-        execution.setContext(trainingCtx)
-        trainingProc.trainedModelPath = trainingCtx.trainedModelPath
-        trainingProc.setCtx(trainingCtx)
-        trainingProc.completed = false
-        trainingProc.businessKey = execution.processInstanceBusinessKey
-        trainingRepo.save(trainingProc)
+
+        txOper!!.executeWithoutResult {
+            trainingProc.trainedModelPath = trainingCtx.trainedModelPath
+            trainingProc.setCtx(trainingCtx)
+            trainingProc.completed = false
+            trainingProc.businessKey = execution.processInstanceBusinessKey
+            trainingRepo.save(trainingProc)
+        }
+        return trainingCtx
     }
 
     private fun saveDatasetIfAvailable(ctx: InputContext, trainingProc: TrainingProcess, dataFiles: List<String>): TrainingProcess {
