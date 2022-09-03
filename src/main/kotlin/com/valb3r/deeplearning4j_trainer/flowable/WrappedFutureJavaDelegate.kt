@@ -3,6 +3,7 @@ package com.valb3r.deeplearning4j_trainer.flowable
 import com.valb3r.deeplearning4j_trainer.domain.Process
 import com.valb3r.deeplearning4j_trainer.flowable.dto.Context
 import com.valb3r.deeplearning4j_trainer.repository.ProcessRepository
+import jogamp.graph.font.typecast.ot.table.Table.name
 import mu.KotlinLogging
 import org.flowable.common.engine.api.async.AsyncTaskInvoker
 import org.flowable.engine.ManagementService
@@ -26,41 +27,41 @@ import javax.persistence.TemporalType
 private val logger = KotlinLogging.logger {}
 private val activeExecutionsForHeartbeat = ConcurrentHashMap.newKeySet<String>()
 
-abstract class WrappedFutureJavaDelegate: FutureJavaDelegate<Context> {
+abstract class WrappedFutureJavaDelegate : FutureJavaDelegate<Context> {
 
-    @Autowired var processRepository: ProcessRepository? = null
-    @Autowired var txOper: TransactionOperations? = null
+    @Autowired
+    var processRepository: ProcessRepository? = null
+    @Autowired
+    var txOper: TransactionOperations? = null
 
     override fun execute(execution: DelegateExecution, taskInvoker: AsyncTaskInvoker): CompletableFuture<Context> {
         val procName = execution.procName()
+        val proc = processRepository!!.findByProcessId(execution.processInstanceId)
 
         return taskInvoker.submit {
-            txOper!!.execute {
-                val name = Thread.currentThread().name
-                val proc = processRepository!!.findByProcessId(execution.processInstanceId)
-                val result: Context
-                try {
-                    Thread.currentThread().name = procName
-                    activeExecutionsForHeartbeat.add(execution.id)
-                    logger.info { "Executing step ${this.javaClass.simpleName} of ${execution.processInstanceId}" }
-                    handleForceStopIfNeeded(proc)
-                    result = doExecute(execution)
-                    logger.info { "Done executing step ${this.javaClass.simpleName}" }
-                } catch (ex: BpmnError) {
-                    logger.error(ex) { "Execution failed" }
-                    completeWithError(execution, ex)
-                    throw ex
-                } catch (ex: Throwable) {
-                    logger.error(ex) { "Execution failed" }
-                    completeWithError(execution, ex)
-                    throw BpmnError("INPUT_ERR")
-                } finally {
-                    Thread.currentThread().name = name
-                    activeExecutionsForHeartbeat.remove(execution.id)
-                }
-                logger.info { "Wrapper done" }
-                result
+            val name = Thread.currentThread().name
+            val result: Context
+            try {
+                Thread.currentThread().name = procName
+                activeExecutionsForHeartbeat.add(execution.id)
+                logger.info { "Executing step ${this.javaClass.simpleName} of ${execution.processInstanceId}" }
+                handleForceStopIfNeeded(proc)
+                result = doExecute(execution)
+                logger.info { "Done executing step ${this.javaClass.simpleName}" }
+            } catch (ex: BpmnError) {
+                logger.error(ex) { "Execution failed" }
+                completeWithError(execution, ex)
+                throw ex
+            } catch (ex: Throwable) {
+                logger.error(ex) { "Execution failed" }
+                completeWithError(execution, ex)
+                throw BpmnError("INPUT_ERR")
+            } finally {
+                Thread.currentThread().name = name
+                activeExecutionsForHeartbeat.remove(execution.id)
             }
+            logger.info { "Wrapper done" }
+            result
         }
     }
 
@@ -90,15 +91,17 @@ abstract class WrappedFutureJavaDelegate: FutureJavaDelegate<Context> {
     }
 
     private fun completeWithError(execution: DelegateExecution, ex: Throwable) {
-        try {
-            val procInstance = processRepository!!.findByProcessId(execution.processInstanceId)!!
-            procInstance.errorMessage = ex.message ?: "${ex.javaClass}: null"
-            procInstance.completed = true
-            procInstance.errorStacktrace = ex.stackTraceToString().toByteArray(UTF_8)
-            processRepository!!.save(procInstance)
-        } catch (ex: Throwable) {
-            // NOP
-            logger.error(ex) { "Failed ${ex.message}" }
+        txOper!!.executeWithoutResult {
+            try {
+                val procInstance = processRepository!!.findByProcessId(execution.processInstanceId)!!
+                procInstance.errorMessage = ex.message ?: "${ex.javaClass}: null"
+                procInstance.completed = true
+                procInstance.errorStacktrace = ex.stackTraceToString().toByteArray(UTF_8)
+                processRepository!!.save(procInstance)
+            } catch (ex: Throwable) {
+                // NOP
+                logger.error(ex) { "Failed ${ex.message}" }
+            }
         }
     }
 
@@ -120,7 +123,8 @@ class HeartbeatLeaseExtender(
             try {
                 val jobs = manager.createJobQuery().executionId(execId).locked().list()
                 jobs.forEach {
-                    val query = em.createNativeQuery("UPDATE act_ru_job SET lock_exp_time_ = ?2 WHERE id_= ?1 AND lock_exp_time_ IS NOT NULL")
+                    val query =
+                        em.createNativeQuery("UPDATE act_ru_job SET lock_exp_time_ = ?2 WHERE id_= ?1 AND lock_exp_time_ IS NOT NULL")
                     query.setParameter(1, it.id)
                     val gregorianCalendar = GregorianCalendar()
                     gregorianCalendar.time = config.clock.currentTime
