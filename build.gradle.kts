@@ -64,7 +64,7 @@ dependencies {
 
     // AVX compat (for 1.0-M1.1 - 1.0-M2.0)
     runtimeOnly("org.nd4j:nd4j-native:${dl4jMasterVersion}")
-    runtimeOnly("org.nd4j:nd4j-native:${dl4jMasterVersion}:linux-x86_64-avx2")
+    runtimeOnly("org.nd4j:nd4j-native:${dl4jMasterVersion}:linux-x86_64-avx512")
 
     // Minio S3 connectivity
     implementation("com.amazonaws:aws-java-sdk-s3:1.11.538")
