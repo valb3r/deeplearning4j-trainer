@@ -63,6 +63,7 @@ dependencies {
     implementation("org.deeplearning4j:deeplearning4j-datasets:${dl4jMasterVersion}")
 
     // GPU CUDA
+    // See https://medium.com/analytics-vidhya/install-cuda-11-2-cudnn-8-1-0-and-python-3-9-on-rtx3090-for-deep-learning-fcf96c95f7a1
     implementation("org.bytedeco:cuda-platform-redist:11.2-8.1-1.5.5")
     runtimeOnly("org.nd4j:nd4j-cuda-11.2:${dl4jMasterVersion}")
 
