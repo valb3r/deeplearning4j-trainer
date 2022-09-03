@@ -12,7 +12,7 @@ data class TrainingContext(
     val modelSpec: ModelSpec? = null,
     override val inputFiles: List<String>,
     val trainingSpec: TrainingSpec,
-    override val datasetSize: Long,
+    override val datasetSize: Long? = null,
     override var currentEpoch: Long,
     val loss: Double? = null,
     val updaterName: String? = null,
@@ -21,11 +21,11 @@ data class TrainingContext(
     fun trainingIterator(storage: Storage): FilePoolFlatBufferDatasetIterator {
         return FilePoolFlatBufferDatasetIterator(
             storage,
-            datasetSize,
             trainingSpec.batchSize,
             trainingSpec.featureVars,
             trainingSpec.labelVars,
-            inputFiles
+            inputFiles,
+            jarIntegration = trainingSpec.jarIntegration
         )
     }
 
@@ -36,7 +36,7 @@ data class TrainingContext(
             "N/A",
             "N/A",
             inputFiles = emptyList(),
-            datasetSize = -1L,
+            datasetSize = null,
             currentEpoch = -1,
             trainingSpec = TrainingSpec(
                 0,

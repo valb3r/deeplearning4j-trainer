@@ -9,14 +9,13 @@ data class ValidationContext(
     override val inputFiles: List<String> = emptyList(),
     val validationSpec: ValidationSpec,
     val validations: List<ValidationAndScore>,
-    override val datasetSize: Long,
+    override val datasetSize: Long? = null,
     override var currentEpoch: Long,
     val loss: Double? = null
 ): Context {
     fun validationIterator(storage: Storage): FilePoolFlatBufferDatasetIterator {
         return FilePoolFlatBufferDatasetIterator(
             storage,
-            datasetSize,
             validationSpec.batchSize,
             validationSpec.featureVars,
             validationSpec.labelVars,
@@ -31,7 +30,7 @@ data class ValidationContext(
             "N/A",
             emptyList(),
             ValidationSpec(0, emptyList(), emptyList(), 0, emptyList()),
-            datasetSize = -1L,
+            datasetSize = null,
             currentEpoch = -1,
             validations = emptyList()
         )

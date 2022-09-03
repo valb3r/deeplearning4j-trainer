@@ -1,13 +1,32 @@
 package com.valb3r.deeplearning4j_trainer.flowable
 
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
+import com.valb3r.deeplearning4j_trainer.classloaders.DynamicClassLoader
+import com.valb3r.deeplearning4j_trainer.flowable.serde.FstSerDe
 import com.valb3r.deeplearning4j_trainer.storage.Storage
 import com.valb3r.deeplearning4j_trainer.storage.resolve
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import java.net.URL
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
+
+fun String.isBinDataFile(): Boolean {
+    return this.endsWith(".csv.data.bin")
+}
+
+fun String.isJarDataFile(): Boolean {
+    return this.endsWith(".bin.jar")
+}
+
+fun String.isCsvDataFile(): Boolean {
+    return this.endsWith(".csv")
+}
+
+fun String.asJarloadClass(clazz: String) {
+    val loader = ClassLoader.getSystemClassLoader() as DynamicClassLoader
+    loader.add(URL(this))
+    Class.forName(clazz, true, ClassLoader.getSystemClassLoader())
+}
+
 
 fun extractZipFilesAndDeleteArch(inputFolder: String, storage: Storage) {
     val zipFiles = storage.list(inputFolder).filter { it.endsWith(".zip") }

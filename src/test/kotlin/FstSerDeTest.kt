@@ -1,6 +1,6 @@
 
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
-import com.valb3r.deeplearning4j_trainer.flowable.FstSerDe
+import com.valb3r.deeplearning4j_trainer.flowable.serde.FstSerDe
 import com.valb3r.deeplearning4j_trainer.storage.FileSystemStorage
 import io.kotest.matchers.collections.shouldHaveSingleElement
 import io.kotest.matchers.collections.shouldHaveSize

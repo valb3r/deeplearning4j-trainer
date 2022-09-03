@@ -26,6 +26,10 @@ private val logger = KotlinLogging.logger {}
 @Service
 class S3SystemStorage(private val conf: S3Config): StorageSystem {
 
+    init {
+        INSTANCE = this
+    }
+
     private val executorService = ThreadPoolExecutor(
         2,
         2,
@@ -109,5 +113,9 @@ class S3SystemStorage(private val conf: S3Config): StorageSystem {
                 .withCredentials(AWSStaticCredentialsProvider(BasicAWSCredentials(conf.accessKeyId, conf.secretKey)))
                 .build()
         }
+    }
+
+    companion object {
+        lateinit var INSTANCE: S3SystemStorage
     }
 }

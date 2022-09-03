@@ -1,6 +1,8 @@
 package com.valb3r.deeplearning4j_trainer.storage
 
 import org.springframework.stereotype.Service
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -8,6 +10,8 @@ import java.nio.file.Files
 import java.util.stream.Collectors
 
 private const val FILE_PROTO = "file://"
+
+private const val BUFF_SIZE = 10 * 1024 * 1024
 
 @Service
 class FileSystemStorage: StorageSystem {
@@ -25,7 +29,7 @@ class FileSystemStorage: StorageSystem {
     }
 
     override fun read(path: String): InputStream {
-        return path.asFile().inputStream()
+        return BufferedInputStream(path.asFile().inputStream(), BUFF_SIZE)
     }
 
     override fun write(path: String): OutputStream {
@@ -33,7 +37,7 @@ class FileSystemStorage: StorageSystem {
             path.asFile().parentFile.mkdirs()
         }
         
-        return path.asFile().outputStream()
+        return BufferedOutputStream(path.asFile().outputStream(), BUFF_SIZE)
     }
 
     override fun move(from: String, to: String): Boolean {

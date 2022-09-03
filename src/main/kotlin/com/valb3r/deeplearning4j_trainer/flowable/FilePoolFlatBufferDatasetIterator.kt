@@ -1,5 +1,9 @@
 package com.valb3r.deeplearning4j_trainer.flowable
 
+import com.valb3r.deeplearning4j_trainer.flowable.dto.JarIntegration
+import com.valb3r.deeplearning4j_trainer.flowable.serde.DataIterator
+import com.valb3r.deeplearning4j_trainer.flowable.serde.FstSerDe
+import com.valb3r.deeplearning4j_trainer.flowable.serde.JarIterator
 import com.valb3r.deeplearning4j_trainer.storage.Storage
 import org.nd4j.linalg.dataset.api.MultiDataSet
 import org.nd4j.linalg.dataset.api.MultiDataSetPreProcessor
@@ -7,36 +11,50 @@ import org.nd4j.linalg.dataset.api.iterator.MultiDataSetIterator
 import org.nd4j.linalg.factory.Nd4j
 
 
+private val cachedJarSources = mutableMapOf<String, JarIterator>()
+
 class FilePoolFlatBufferDatasetIterator(
     private val storage: Storage,
-    private val dataSize: Long,
     private val batchSize: Int,
     private val featureNames: List<String>,
     private val labelNames: List<String>,
     dataFiles: List<String>,
-    private var binIter: FstSerDe.FstIterator? = null,
+    private var binIter: DataIterator? = null,
     private var dataFilePool: MutableSet<String> = linkedSetOf(*dataFiles.toTypedArray()),
     private var fetchedSize: Long = 0,
     private var resultSetIdName: String? = null,
+    private var jarIntegration: JarIntegration? = null,
     var resultSetIds: MutableList<Float>? = null,
+    var computedDatasetSize: Long = 0L
 ): MultiDataSetIterator {
 
     override fun hasNext(): Boolean {
-        return fetchedSize < dataSize
+        if (noBinIterOrEmpty()) {
+            if (dataFilePool.isEmpty()) { // No data left
+                return false
+            }
+        }
+
+        return true
     }
 
     override fun next(num: Int): MultiDataSet {
         val features = mutableMapOf<String, MutableList<FloatArray>>()
         val labels = mutableMapOf<String, MutableList<FloatArray>>()
         for (ind in 0 until num) {
-            if (null == binIter || !binIter!!.hasNext()) {
-                if (dataFilePool.isEmpty()) { // No data left
-                    break
-                }
+            if (!hasNext()) {
+                break
+            }
+            if (noBinIterOrEmpty()) {
                 val file = dataFilePool.first()
                 dataFilePool.remove(file)
-                binIter = FstSerDe.FstIterator(file, storage)
+                binIter = if (file.isJarDataFile()) {
+                    cachedJarSources.computeIfAbsent(file) { jarIterator(file) }.reset()
+                } else {
+                    FstSerDe.FstIterator(file, storage)
+                }
             }
+
             val entry = binIter!!.next()
 
             if (null != resultSetIdName) {
@@ -57,6 +75,7 @@ class FilePoolFlatBufferDatasetIterator(
                     labels.computeIfAbsent(name) { mutableListOf() }.add(vals)
                 }
             }
+            computedDatasetSize++
         }
 
         if (features.isEmpty()) {
@@ -80,7 +99,7 @@ class FilePoolFlatBufferDatasetIterator(
     }
 
     fun skipNext() {
-        if (null == binIter || !binIter!!.hasNext()) {
+        if (noBinIterOrEmpty()) {
             if (dataFilePool.isEmpty()) { // No data left
                 throw IllegalArgumentException("Empty")
             }
@@ -115,4 +134,11 @@ class FilePoolFlatBufferDatasetIterator(
     override fun reset() {
         TODO("Not yet implemented")
     }
+
+    private fun jarIterator(file: String): JarIterator {
+        file.asJarloadClass(jarIntegration!!.integrationClass)
+        return JarIterator(jarIntegration!!.integrationClass, jarIntegration!!.params ?: mapOf())
+    }
+
+    private fun noBinIterOrEmpty() = null == binIter || !binIter!!.hasNext()
 }

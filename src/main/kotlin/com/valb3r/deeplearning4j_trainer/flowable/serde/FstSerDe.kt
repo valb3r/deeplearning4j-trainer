@@ -1,13 +1,13 @@
-package com.valb3r.deeplearning4j_trainer.flowable
+package com.valb3r.deeplearning4j_trainer.flowable.serde
 
 import com.fasterxml.jackson.databind.MappingIterator
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.fasterxml.jackson.dataformat.csv.CsvParser
 import com.valb3r.deeplearning4j_trainer.storage.Storage
 import java.io.Closeable
+import java.lang.reflect.Method
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-
 
 private fun bigEndianBuff(sz: Int): ByteBuffer {
     val buff = ByteBuffer.allocate(sz)
@@ -58,7 +58,7 @@ class FstSerDe {
 
     data class SerOutp(val fstFileName: String, val numRows: Int)
 
-    class FstIterator(file: String, storage: Storage): Iterator<Map<String, FloatArray>>, Closeable {
+    class FstIterator(file: String, storage: Storage): DataIterator {
 
         private val fIf = storage.read(file)
         private val headerNames: List<String>
@@ -108,7 +108,7 @@ class FstSerDe {
             return result
         }
 
-        fun skipNext() {
+        override fun skipNext() {
             if (0 == vectorSize) {
                 vectorSize = readVectorSize()
             }
@@ -117,6 +117,10 @@ class FstSerDe {
                 fIf.skip((vectorSize * Float.SIZE_BYTES).toLong())
                 vectorSize = readVectorSize()
             }
+        }
+
+        override fun reset(): DataIterator {
+            TODO("Not yet implemented")
         }
 
         override fun close() {
@@ -130,7 +134,7 @@ class FstSerDe {
             }
             return vectorSizeBytes.int
         }
-        
+
         private fun readExact(buff: ByteArray): Int {
             var capacity = buff.size
             var off = 0
@@ -145,4 +149,44 @@ class FstSerDe {
             return buff.size
         }
     }
+}
+
+class JarIterator(
+    integrationClazz: String,
+    params: Map<String, String>,
+): DataIterator {
+
+    private val clazz: Class<*> = Class.forName(integrationClazz, true, ClassLoader.getSystemClassLoader())
+    private val clazzInstance = clazz.getConstructor(Map::class.java).newInstance(params)
+
+    private val hasNextI: Method = clazz.getDeclaredMethod("hasNext")
+    private val nextI: Method = clazz.getDeclaredMethod("next")
+    private val resetI: Method = clazz.getDeclaredMethod("reset")
+
+    override fun hasNext(): Boolean {
+        return hasNextI.invoke(clazzInstance) as Boolean
+    }
+
+    override fun next(): Map<String, FloatArray> {
+        return nextI.invoke(clazzInstance) as Map<String, FloatArray>
+    }
+
+    override fun reset(): DataIterator {
+        resetI.invoke(clazzInstance)
+        return this
+    }
+
+
+    override fun skipNext() {
+        next()
+    }
+    override fun close() {
+        // NOP
+    }
+}
+
+interface DataIterator: Iterator<Map<String, FloatArray>>, Closeable {
+
+    fun skipNext()
+    fun reset(): DataIterator
 }

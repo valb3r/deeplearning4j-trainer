@@ -1,14 +1,15 @@
 package com.valb3r.deeplearning4j_trainer.flowable.validation
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.valb3r.deeplearning4j_trainer.flowable.WrappedJavaDelegate
+import com.valb3r.deeplearning4j_trainer.flowable.*
 import com.valb3r.deeplearning4j_trainer.flowable.calculator.ExpressionParser
-import com.valb3r.deeplearning4j_trainer.flowable.getValidationContext
-import com.valb3r.deeplearning4j_trainer.flowable.loadValidationSameDiff
-import com.valb3r.deeplearning4j_trainer.flowable.uniqName
+import com.valb3r.deeplearning4j_trainer.flowable.dto.TrainingContext
+import com.valb3r.deeplearning4j_trainer.flowable.dto.ValidationContext
+import com.valb3r.deeplearning4j_trainer.flowable.training.ModelTrainer
 import com.valb3r.deeplearning4j_trainer.repository.ValidationProcessRepository
 import com.valb3r.deeplearning4j_trainer.storage.StorageService
 import org.flowable.engine.delegate.DelegateExecution
+import org.nd4j.autodiff.samediff.SameDiff
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.springframework.stereotype.Service
 
@@ -49,10 +50,22 @@ class ModelValidator(
             )
         }
 
-        val process = validationRepo.findByProcessId(execution.processInstanceId)!!
-        process.setCtx(ctx)
-        process.validationResult = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(metrics)
-        validationRepo.save(process)
+        execution.updateContext {
+            it.copy(
+                datasetSize = iter.computedDatasetSize
+            )
+        }
+
+        updateProcess(execution, ctx, metrics)
+    }
+
+    private fun updateProcess(execution: DelegateExecution, ctx: ValidationContext, metrics: Map<String, Map<String, Float>>) {
+        txOper.execute {
+            val process = validationRepo.findByProcessId(execution.processInstanceId)!!
+            process.setCtx(ctx)
+            process.validationResult = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(metrics)
+            validationRepo.save(process)
+        }
     }
 
     fun extract(array: INDArray): Array<FloatArray> {
