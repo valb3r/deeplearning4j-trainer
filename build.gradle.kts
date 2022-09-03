@@ -64,7 +64,7 @@ dependencies {
 
     // MacOs compat (for 1.0-M1.1 - 1.0-M2.0)
     runtimeOnly("org.nd4j:nd4j-native-platform:${dl4jMasterVersion}")
-    runtimeOnly("org.nd4j:nd4j-native:${dl4jMasterVersion}:macosx-x86_64")
+    runtimeOnly("org.nd4j:nd4j-native:${dl4jMasterVersion}:linux-x86_64-avx2")
 
     // Minio S3 connectivity
     implementation("com.amazonaws:aws-java-sdk-s3:1.11.538")
