@@ -12,9 +12,11 @@ import org.flowable.spring.SpringProcessEngineConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionOperations
+import org.springframework.transaction.support.TransactionTemplate
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -27,9 +29,15 @@ private val activeExecutionsForHeartbeat = ConcurrentHashMap.newKeySet<String>()
 abstract class WrappedJavaDelegate: JavaDelegate {
 
     @Autowired var processRepository: ProcessRepository? = null
-    @Autowired var txOper: TransactionOperations? = null
+    @Autowired var txMgr: PlatformTransactionManager? = null
+    lateinit var txOper: TransactionTemplate
 
+    // Note that we are in transaction here, FIXME - long lived transaction
+    // FutureJavaDelegate requires non async ServiceTask and therefore suits current needs poorly (is not truly async)
     override fun execute(execution: DelegateExecution) {
+        txOper = TransactionTemplate(txMgr!!)
+        txOper.propagationBehavior = Propagation.REQUIRES_NEW.value()
+
         val name = Thread.currentThread().name
         val proc = processRepository!!.findByProcessId(execution.processInstanceId)
 

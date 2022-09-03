@@ -1,6 +1,7 @@
 package com.valb3r.deeplearning4j_trainer.flowable.training
 
 import com.valb3r.deeplearning4j_trainer.flowable.*
+import com.valb3r.deeplearning4j_trainer.flowable.dto.TrainingContext
 import com.valb3r.deeplearning4j_trainer.repository.TrainingProcessRepository
 import com.valb3r.deeplearning4j_trainer.storage.StorageService
 import org.flowable.engine.delegate.DelegateExecution
@@ -36,11 +37,18 @@ class ModelTrainer(private val trainingRepo: TrainingProcessRepository, private 
             updaterStep = sd.trainingConfig.updater.getLearningRate(0, lossListener.epoch.toInt()).toString(),
             datasetSize = iter.computedDatasetSize
         ) }
-        val process = trainingRepo.findByProcessId(execution.processInstanceId)!!
-        process.setCtx(ctx)
-        process.completed = false
-        process.updatePerformance(sd, lossListener.loss, lossListener.epoch, storage)
-        trainingRepo.save(process)
+
+        updateProcess(sd, execution, ctx, lossListener)
+    }
+
+    private fun updateProcess(sd: SameDiff, execution: DelegateExecution, ctx: TrainingContext, lossListener: LossListener) {
+        txOper!!.execute {
+            val process = trainingRepo.findByProcessId(execution.processInstanceId)!!
+            process.setCtx(ctx)
+            process.completed = false
+            process.updatePerformance(sd, lossListener.loss, lossListener.epoch, storage)
+            trainingRepo.save(process)
+        }
     }
 
     private class LossListener(var loss: Double = 0.0, var epoch: Long = -1): BaseListener() {
