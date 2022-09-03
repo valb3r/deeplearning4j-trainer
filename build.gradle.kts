@@ -63,11 +63,12 @@ dependencies {
     implementation("org.deeplearning4j:deeplearning4j-datasets:${dl4jMasterVersion}")
 
     // GPU CUDA
+    implementation("org.bytedeco:cuda-platform-redist:11.2-8.1-1.5.5")
     runtimeOnly("org.nd4j:nd4j-cuda-11.2:${dl4jMasterVersion}")
 
     // MacOs compat (for 1.0-M1.1 - 1.0-M2.0)
-    runtimeOnly("org.nd4j:nd4j-native-platform:${dl4jMasterVersion}")
-    runtimeOnly("org.nd4j:nd4j-native:${dl4jMasterVersion}:macosx-x86_64")
+    runtimeOnly("org.nd4j:nd4j-cuda-11.2-platform:${dl4jMasterVersion}")
+    //runtimeOnly("org.nd4j:nd4j-native:${dl4jMasterVersion}:macosx-x86_64")
 
     // Minio S3 connectivity
     implementation("com.amazonaws:aws-java-sdk-s3:1.11.538")
