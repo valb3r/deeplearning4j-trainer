@@ -62,6 +62,9 @@ dependencies {
     implementation("org.deeplearning4j:deeplearning4j-core:${dl4jMasterVersion}")
     implementation("org.deeplearning4j:deeplearning4j-datasets:${dl4jMasterVersion}")
 
+    // GPU CUDA
+    runtimeOnly("org.nd4j:nd4j-cuda-11.2:${dl4jMasterVersion}")
+
     // MacOs compat (for 1.0-M1.1 - 1.0-M2.0)
     runtimeOnly("org.nd4j:nd4j-native-platform:${dl4jMasterVersion}")
     runtimeOnly("org.nd4j:nd4j-native:${dl4jMasterVersion}:macosx-x86_64")
