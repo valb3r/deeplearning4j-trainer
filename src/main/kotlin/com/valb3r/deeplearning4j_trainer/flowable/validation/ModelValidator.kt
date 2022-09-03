@@ -56,11 +56,11 @@ class ModelValidator(
             )
         }
 
-        updateProcess(sd, execution, ctx, metrics)
+        updateProcess(execution, ctx, metrics)
     }
 
-    private fun updateProcess(sd: SameDiff, execution: DelegateExecution, ctx: ValidationContext, metrics: Map<String, Map<String, Float>>) {
-        txOper!!.execute {
+    private fun updateProcess(execution: DelegateExecution, ctx: ValidationContext, metrics: Map<String, Map<String, Float>>) {
+        txOper.execute {
             val process = validationRepo.findByProcessId(execution.processInstanceId)!!
             process.setCtx(ctx)
             process.validationResult = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(metrics)
