@@ -4,7 +4,6 @@ import com.valb3r.deeplearning4j_trainer.config.DirectoriesConfig
 import com.valb3r.deeplearning4j_trainer.config.FlowableConfig
 import com.valb3r.deeplearning4j_trainer.config.S3Config
 import com.valb3r.deeplearning4j_trainer.config.UsersConfig
-import com.valb3r.deeplearning4j_trainer.s3_urlconnection_adapter.s3.Handler
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -23,7 +22,6 @@ class Deeplearning4j_TrainerSpringApp {
 
         @JvmStatic
         fun main(args: Array<String>) {
-            Handler.register()
             SpringApplication.run(Deeplearning4j_TrainerSpringApp::class.java, *args)
         }
     }

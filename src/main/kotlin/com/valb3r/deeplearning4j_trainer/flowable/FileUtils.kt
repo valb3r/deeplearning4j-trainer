@@ -1,9 +1,8 @@
 package com.valb3r.deeplearning4j_trainer.flowable
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.valb3r.deeplearning4j_trainer.classloaders.DynamicClassLoader
-import com.valb3r.deeplearning4j_trainer.config.AppContext
+import com.valb3r.deeplearning4j_trainer.config.AppContextAndS3Handler
 import com.valb3r.deeplearning4j_trainer.config.S3Config
 import com.valb3r.deeplearning4j_trainer.flowable.serde.FstSerDe
 import com.valb3r.deeplearning4j_trainer.s3_urlconnection_adapter.s3.Handler.Companion.encodeS3CredentialsToUrl
@@ -29,7 +28,7 @@ fun String.isCsvDataFile(): Boolean {
 fun String.asJarloadClass(clazz: String) {
     val loader = DynamicClassLoader.INSTANCE
     val url = if (this.isS3()) {
-        this.encodeS3CredentialsToUrl(AppContext.CONTEXT.getBean(S3Config::class.java))
+        this.encodeS3CredentialsToUrl(AppContextAndS3Handler.CONTEXT.getBean(S3Config::class.java))
     } else {
         this
     }
