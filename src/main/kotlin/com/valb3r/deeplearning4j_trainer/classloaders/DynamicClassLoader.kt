@@ -28,6 +28,9 @@ class DynamicClassLoader
     }
 
     companion object {
+
+        val INSTANCE = DynamicClassLoader()
+
         init {
             registerAsParallelCapable()
         }

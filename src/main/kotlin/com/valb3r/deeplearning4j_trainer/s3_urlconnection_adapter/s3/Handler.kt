@@ -1,12 +1,15 @@
 package com.valb3r.deeplearning4j_trainer.s3_urlconnection_adapter.s3
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.valb3r.deeplearning4j_trainer.config.S3Config
 import com.valb3r.deeplearning4j_trainer.storage.S3SystemStorage
-import liquibase.pro.packaged.`is`
 import java.io.IOException
 import java.io.InputStream
 import java.net.URL
 import java.net.URLConnection
 import java.net.URLStreamHandler
+import java.util.Base64
 
 // Name MUST BE Handler
 open class Handler : URLStreamHandler() {
@@ -24,7 +27,8 @@ open class Handler : URLStreamHandler() {
         }
 
         override fun getInputStream(): InputStream {
-            return S3SystemStorage.INSTANCE.read(url.toURI().toASCIIString())
+            val url = url.toURI().toASCIIString()
+            return S3SystemStorage(url.decodeS3CredentialsFromUrl()).read(url.decodeS3Url())
         }
     }
 
@@ -35,6 +39,19 @@ open class Handler : URLStreamHandler() {
             var registered: String? = System.getProperty("java.protocol.handler.pkgs")
             registered = if (true == registered?.isNotBlank()) "|$registered" else ""
             System.setProperty("java.protocol.handler.pkgs", "$packageName$registered")
+        }
+
+        fun String.encodeS3CredentialsToUrl(config: S3Config): String {
+            return "$this?c=${Base64.getUrlEncoder().encodeToString(ObjectMapper().registerModule(KotlinModule.Builder().build()).writeValueAsBytes(config))}"
+        }
+
+        fun String.decodeS3CredentialsFromUrl(): S3Config {
+            val base64 = this.split("?c=")[1]
+            return ObjectMapper().registerModule(KotlinModule.Builder().build()).readValue(Base64.getUrlDecoder().decode(base64), S3Config::class.java)
+        }
+
+        fun String.decodeS3Url(): String {
+            return this.split("?c=")[0]
         }
     }
 }

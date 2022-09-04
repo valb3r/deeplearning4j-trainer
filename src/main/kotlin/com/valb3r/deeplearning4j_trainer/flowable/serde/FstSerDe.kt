@@ -3,6 +3,7 @@ package com.valb3r.deeplearning4j_trainer.flowable.serde
 import com.fasterxml.jackson.databind.MappingIterator
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.fasterxml.jackson.dataformat.csv.CsvParser
+import com.valb3r.deeplearning4j_trainer.classloaders.DynamicClassLoader
 import com.valb3r.deeplearning4j_trainer.storage.Storage
 import java.io.Closeable
 import java.lang.reflect.Method
@@ -161,7 +162,7 @@ class JarIterator(
     params: Map<String, String>,
 ): DataIterator {
 
-    private val clazz: Class<*> = Class.forName(integrationClazz, true, ClassLoader.getSystemClassLoader())
+    private val clazz: Class<*> = Class.forName(integrationClazz, true, DynamicClassLoader.INSTANCE)
     private val clazzInstance = clazz.getConstructor(Map::class.java).newInstance(params)
 
     private val hasNextI: Method = clazz.getDeclaredMethod("hasNext")
