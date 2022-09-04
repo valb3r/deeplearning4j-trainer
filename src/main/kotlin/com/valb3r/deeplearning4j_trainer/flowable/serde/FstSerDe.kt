@@ -67,12 +67,12 @@ class FstSerDe {
         init {
             val headers = mutableListOf<String>()
             val numHeadersBytes = bigEndianBuff(Int.SIZE_BYTES)
-            readExact(numHeadersBytes.array())
+            readExact(numHeadersBytes.array(), numHeadersBytes.capacity())
             (0 until numHeadersBytes.int).forEach { _ ->
                 val headerNameLenBytes = bigEndianBuff(Int.SIZE_BYTES)
-                readExact(headerNameLenBytes.array())
+                readExact(headerNameLenBytes.array(), headerNameLenBytes.capacity())
                 val headerNameBytes = bigEndianBuff(headerNameLenBytes.int)
-                readExact(headerNameBytes.array())
+                readExact(headerNameBytes.array(), headerNameBytes.capacity())
                 val headerName = headerNameBytes.array().decodeToString()
                 headers.add(headerName)
             }
@@ -98,11 +98,16 @@ class FstSerDe {
                 vectorSize = readVectorSize()
             }
             val result = mutableMapOf<String, FloatArray>()
+            var vectorBytes = bigEndianBuff(1024)
             headerNames.forEach { name ->
-                val vectorBytes = bigEndianBuff(vectorSize * Float.SIZE_BYTES)
-                readExact(vectorBytes.array())
+                val size = vectorSize * Float.SIZE_BYTES
+                if (vectorBytes.capacity() < size) {
+                    vectorBytes = bigEndianBuff(size)
+                }
+                readExact(vectorBytes.array(), size)
                 val buf = vectorBytes.asFloatBuffer()
-                result[name] = (0 until vectorSize).map { buf.get() }.toFloatArray()
+                result[name] = FloatArray(vectorSize)
+                buf.get(result[name])
                 vectorSize = readVectorSize()
             }
             return result
@@ -129,14 +134,14 @@ class FstSerDe {
 
         private fun readVectorSize(): Int {
             val vectorSizeBytes = bigEndianBuff(Int.SIZE_BYTES)
-            if (readExact(vectorSizeBytes.array()) < 0) {
+            if (readExact(vectorSizeBytes.array(), vectorSizeBytes.capacity()) < 0) {
                 return -1
             }
             return vectorSizeBytes.int
         }
 
-        private fun readExact(buff: ByteArray): Int {
-            var capacity = buff.size
+        private fun readExact(buff: ByteArray, sizeToRead: Int): Int {
+            var capacity = sizeToRead
             var off = 0
             while (capacity > 0) {
                 val bytesRead = fIf.read(buff, off, capacity)

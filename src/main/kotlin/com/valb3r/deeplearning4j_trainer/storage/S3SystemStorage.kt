@@ -10,6 +10,7 @@ import com.google.common.cache.CacheBuilder
 import com.valb3r.deeplearning4j_trainer.config.S3Config
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
+import java.io.BufferedInputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.time.Duration
@@ -22,6 +23,8 @@ import java.util.stream.StreamSupport
 private const val S3_PROTO = "s3://"
 
 private val logger = KotlinLogging.logger {}
+
+private const val BUFFER_SIZE = 10 * 1024 * 1024
 
 @Service
 class S3SystemStorage(private val conf: S3Config): StorageSystem {
@@ -57,7 +60,7 @@ class S3SystemStorage(private val conf: S3Config): StorageSystem {
     }
 
     override fun read(path: String): InputStream {
-        return path.asS3().getObject(path.bucket(), path.objKey()).objectContent
+        return BufferedInputStream(path.asS3().getObject(path.bucket(), path.objKey()).objectContent, BUFFER_SIZE)
     }
 
     override fun write(path: String): OutputStream {
