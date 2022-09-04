@@ -120,7 +120,7 @@ class FstSerDe {
             }
 
             headerNames.forEach { name ->
-                fIf.skip((vectorSize * Float.SIZE_BYTES).toLong())
+                skipExact((vectorSize * Float.SIZE_BYTES).toLong())
                 vectorSize = readVectorSize()
             }
         }
@@ -139,6 +139,18 @@ class FstSerDe {
                 return -1
             }
             return vectorSizeBytes.int
+        }
+
+        private fun skipExact(sizeToSkip: Long) {
+            var capacity = sizeToSkip
+            while (capacity > 0) {
+                val bytesRead = fIf.skip(capacity)
+                if (bytesRead == 0L) {
+                    return
+                }
+
+                capacity -= bytesRead
+            }
         }
 
         private fun readExact(buff: ByteArray, sizeToRead: Int): Int {

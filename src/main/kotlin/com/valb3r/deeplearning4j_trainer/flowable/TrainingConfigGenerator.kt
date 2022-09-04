@@ -9,6 +9,7 @@ import org.nd4j.autodiff.samediff.TrainingConfig
 import org.nd4j.linalg.learning.config.Adam
 import org.nd4j.linalg.learning.config.IUpdater
 import org.nd4j.linalg.learning.config.Nesterovs
+import org.nd4j.linalg.learning.config.Sgd
 import org.nd4j.linalg.learning.regularization.L1Regularization
 import org.nd4j.linalg.learning.regularization.L2Regularization
 import org.nd4j.linalg.learning.regularization.Regularization
@@ -31,6 +32,7 @@ private fun makeUpdater(updater: Updater): IUpdater {
     val created = when(updater.type) {
         "nesterovs" -> Nesterovs(updater.params!![0], updater.params[1])
         "adam" -> Adam(updater.params!![0])
+        "sgd" -> Sgd(updater.params!![0])
         else -> throw IllegalArgumentException("Unknown updater ${updater.type}")
     }
     makeSchedule(updater)?.apply { created.setLrAndSchedule(this.valueAt(0, 0), this) }
