@@ -11,6 +11,7 @@ import org.nd4j.autodiff.samediff.SameDiff
 import org.nd4j.linalg.dataset.api.MultiDataSet
 
 class ModelSavingListener(
+    private val sameDiff: SameDiff,
     private val frequency: Int,
     private val execution: DelegateExecution,
     private val storage: Storage
@@ -25,6 +26,7 @@ class ModelSavingListener(
             return
         }
 
-        execution.storeSameDiff(sd, storage)
+        // Do not use 'sd' for storage
+        execution.storeSameDiff(sameDiff, storage)
     }
 }

@@ -58,5 +58,6 @@ fun DelegateExecution.storeSameDiff(sd: SameDiff, storage: Storage) {
     storage.write(path).use {
         Channels.newChannel(it).write(sd.asFlatBuffers(true))
     }
+    storage.move(modelPath, "$modelPath.backup")
     storage.move(path, modelPath)
 }
