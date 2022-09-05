@@ -175,7 +175,7 @@ class JarIterator(
 ): DataIterator {
 
     private val clazz: Class<*> = Class.forName(integrationClazz, true, DynamicClassLoader.INSTANCE)
-    private val clazzInstance = clazz.getConstructor(Map::class.java).newInstance(params)
+    private val clazzInstance = clazz.getConstructor(Map::class.java, ClassLoader::class.java).newInstance(params, DynamicClassLoader.INSTANCE)
 
     private val hasNextI: Method = clazz.getDeclaredMethod("hasNext")
     private val nextI: Method = clazz.getDeclaredMethod("next")
