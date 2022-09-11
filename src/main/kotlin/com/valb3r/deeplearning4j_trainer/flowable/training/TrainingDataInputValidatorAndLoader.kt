@@ -11,16 +11,12 @@ import com.valb3r.deeplearning4j_trainer.flowable.dto.ModelSpec
 import com.valb3r.deeplearning4j_trainer.flowable.dto.TrainingContext
 import com.valb3r.deeplearning4j_trainer.flowable.dto.TrainingSpec
 import com.valb3r.deeplearning4j_trainer.repository.TrainingProcessRepository
-import com.valb3r.deeplearning4j_trainer.storage.Storage
 import com.valb3r.deeplearning4j_trainer.storage.StorageService
 import com.valb3r.deeplearning4j_trainer.storage.resolve
 import org.flowable.engine.delegate.BpmnError
 import org.flowable.engine.delegate.DelegateExecution
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
-import java.io.File
-
-
 
 
 /**
@@ -100,7 +96,9 @@ class TrainingDataInputValidatorAndLoader(
             datasetSize = filesAndDatasetSize.second,
             modelPath = modelFiles.firstOrNull(),
             modelSpec = modelSpec,
-            currentEpoch = 0L
+            currentEpoch = 0L,
+            parallelStepCount = 1,
+            activeChildExecutionIds = emptySet()
         )
         execution.setContext(trainingCtx)
         trainingProc.trainedModelPath = trainingCtx.trainedModelPath

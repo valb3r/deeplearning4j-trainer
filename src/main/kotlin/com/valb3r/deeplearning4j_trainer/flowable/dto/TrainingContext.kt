@@ -17,6 +17,7 @@ data class TrainingContext(
     val loss: Double? = null,
     val updaterName: String? = null,
     val updaterStep: String? = null,
+    var parallelStepCount: Int,
     val parentExecutionId: String? = null,
     var activeChildExecutionIds: Set<String>
 ): Context {
@@ -50,6 +51,7 @@ data class TrainingContext(
                regularization = null,
                 loss = Loss("N/A", emptyList())
             ),
+            parallelStepCount = 1,
             activeChildExecutionIds = emptySet()
         )
     }

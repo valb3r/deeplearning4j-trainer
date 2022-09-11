@@ -97,6 +97,7 @@ class InputValidator(
             modelPath = modelFiles.firstOrNull(),
             modelSpec = modelSpec,
             currentEpoch = 0L,
+            parallelStepCount = 1,
             activeChildExecutionIds = emptySet()
         )
         execution.setContext(trainingCtx)
