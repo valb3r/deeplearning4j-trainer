@@ -16,7 +16,9 @@ data class TrainingContext(
     override var currentEpoch: Long,
     val loss: Double? = null,
     val updaterName: String? = null,
-    val updaterStep: String? = null
+    val updaterStep: String? = null,
+    val parentExecutionId: String? = null,
+    var activeChildExecutionIds: Set<String>
 ): Context {
     fun trainingIterator(storage: Storage): FilePoolFlatBufferDatasetIterator {
         return FilePoolFlatBufferDatasetIterator(
@@ -47,7 +49,8 @@ data class TrainingContext(
                 updater = Updater("N/A", null, null),
                regularization = null,
                 loss = Loss("N/A", emptyList())
-            )
+            ),
+            activeChildExecutionIds = emptySet()
         )
     }
 }
